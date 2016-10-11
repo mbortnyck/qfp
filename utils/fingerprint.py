@@ -56,7 +56,7 @@ def _stft(samples):
     spec[spec == -np.inf] = 0 # infinite values to zero
     return spec
 
-def _peaks(spec, dbgate=200, maxiter=50, miniter=15):
+def _peaks(spec, dbgate=200, maxiter=20, miniter=5):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
@@ -98,7 +98,6 @@ def fingerprint(path):
     #quads = _quads(pos)
     return pos
 
-def test(path):
-    fifteen = _pos(_peaks(_stft(_load(path, snip=True, length=15))))
-    thirty = _pos(_peaks(_stft(_load(path, snip=True, length=30))))
-    return fifteen, thirty
+def test(path, dbgate):
+    thirty = _pos(_peaks(_stft(_load(path, snip=True, length=30)), dbgate))
+    return thirty
