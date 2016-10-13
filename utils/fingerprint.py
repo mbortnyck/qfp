@@ -3,10 +3,12 @@ from numpy.lib import stride_tricks
 from scipy.ndimage.morphology import generate_binary_structure, iterate_structure
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from pydub import AudioSegment
+from multiprocessing import Pool
 
-def _load(path, normalize=True, snip=False, length=15):
+def _load(path, normalize=True, snip=None):
     """
     Creates array of samples from input audio file
+    snip = only return first n seconds of input
     """
     audio = AudioSegment.from_file(path)
     # downsample if stereo, sample rate > 16kHz, or > 16-bit depth
@@ -14,15 +16,16 @@ def _load(path, normalize=True, snip=False, length=15):
     or (audio.frame_rate != 16000) \
     or (audio.sample_width != 2):
         audio = _downsample(audio)
-    if normalize is True:
+    if normalize:
         audio = _normalize(audio)
-    if snip is True:
-        audio = audio[:(length * 1000)]
+    if snip is not None:
+        audio = audio[:(snip * 1000)]
     return audio.get_array_of_samples()
 
 def _downsample(audio):
     """
     Downsamples audio to monoaural, 16kHz sample rate, 16-bit depth
+    Values defined by QFP paper
     """
     audio = audio.set_channels(1)
     audio = audio.set_frame_rate(16000)
@@ -56,17 +59,15 @@ def _stft(samples):
     spec[spec == -np.inf] = 0 # infinite values to zero
     return spec
 
-def _peaks(spec, dbgate=200, maxiter=20, miniter=5):
+def _peaks(spec):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
     """
-    spec[spec < dbgate] = -1 # filters out all peaks that are below gate
-    struct = generate_binary_structure(2, 1)
-    maxfprint = iterate_structure(struct, maxiter).astype(int)
-    minfprint = iterate_structure(struct, miniter).astype(int)
-    maxima = maximum_filter(spec, footprint=maxfprint)
-    minima = minimum_filter(spec, footprint=minfprint)
+    maxFilterDimen = (91, 65)
+    minFilterDimen = (3, 3)
+    maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
+    minima = minimum_filter(spec, footprint=np.ones(minFilterDimen, dtype=np.int8))
     peaks = ((spec == maxima) == (maxima != minima)).astype(int)
     return peaks
 
@@ -81,14 +82,18 @@ def _pos(peaks):
                 list.append((i, j))
     return list
 
-def _quads(peaks):
+def _quads(peaks, r, n, k=10):
     """
     finds valid quads of a given set of peak positions
     k should be same between ref/query
     r and n should be smaller for ref, larger for query [1]
     """
-    k, r, n
-    return 0
+    rate = 124
+    i = 0
+    while len(quads) < n:
+        a = peaks[i]
+        i += 1
+    return quads
 
 def fingerprint(path):
     samples = _load(path)
@@ -98,6 +103,6 @@ def fingerprint(path):
     #quads = _quads(pos)
     return pos
 
-def test(path, dbgate):
-    thirty = _pos(_peaks(_stft(_load(path, snip=True, length=30)), dbgate))
-    return thirty
+def test(path):
+    peaks = _peaks(_stft(_load(path, snip=15)))
+    return peaks
