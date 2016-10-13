@@ -4,6 +4,7 @@ from scipy.ndimage.morphology import generate_binary_structure, iterate_structur
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from pydub import AudioSegment
 from multiprocessing import Pool
+import time
 
 def _load(path, normalize=True, snip=None):
     """
@@ -63,24 +64,15 @@ def _peaks(spec):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
+    Returns tuple of arrays representing indices of peaks
     """
     maxFilterDimen = (91, 65)
     minFilterDimen = (3, 3)
     maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
     minima = minimum_filter(spec, footprint=np.ones(minFilterDimen, dtype=np.int8))
     peaks = ((spec == maxima) == (maxima != minima)).astype(int)
-    return peaks
-
-def _pos(peaks):
-    """
-    Returns list of peak positions
-    """
-    list = []
-    for i in range(len(peaks)):
-        for j in range(len(peaks[0])):
-            if peaks[i][j] == 1:
-                list.append((i, j))
-    return list
+    pos = np.nonzero(peaks)
+    return pos
 
 def _quads(peaks, r, n, k=10):
     """
@@ -99,10 +91,5 @@ def fingerprint(path):
     samples = _load(path)
     spec = _stft(samples)
     peaks = _peaks(spec)
-    pos = _pos(peaks)
     #quads = _quads(pos)
-    return pos
-
-def test(path):
-    peaks = _peaks(_stft(_load(path, snip=15)))
     return peaks
