@@ -1,10 +1,7 @@
 import numpy as np
 from numpy.lib import stride_tricks
-from scipy.ndimage.morphology import generate_binary_structure, iterate_structure
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from pydub import AudioSegment
-from multiprocessing import Pool
-import time
 
 def _load(path, normalize=True, snip=None):
     """
