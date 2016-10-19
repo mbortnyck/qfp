@@ -4,9 +4,6 @@ from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from scipy.misc import comb
 from pydub import AudioSegment
-import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import matplotlib.patches as mpatches
 
 def _load(path, downsample=True, normalize=True, snip=None):
     """
@@ -102,8 +99,8 @@ def _create_quads(peaks, q, r, n, k=497):
         if filtered is None:
             continue
         offset = 0
-        valid = []
-        while (len(valid) < q) and (offset + n < len(filtered)): # check boundaries
+        validQuads = []
+        while (len(validQuads) < q) and (offset + n < len(filtered)): # check boundaries
             take = filtered[offset : offset + n]
             combs = list(itertools.combinations(take, 3))
             for comb in combs:
@@ -112,12 +109,12 @@ def _create_quads(peaks, q, r, n, k=497):
                 C = comb[0]
                 D = comb[1]
                 if _validate_quad(A, B, C, D) is True:
-                    valid += [(A, B, C, D)]
-                if len(valid) >= 2:
+                    validQuads += [(A, B, C, D)]
+                if len(validQuads) >= 2:
                     break
             offset += 1
-        if valid:
-            quads += valid
+        if validQuads:
+            quads += validQuads
     return quads
 
 def _validate_quad(A, B, C, D):
@@ -125,6 +122,10 @@ def _validate_quad(A, B, C, D):
     or (A[1] >= B[1]) \
     or (A[0] >= C[0]) \
     or (A[1] >= C[1]) \
+    or (A[0] >= D[0]) \
+    or (A[1] >= D[1]) \
+    or (C[0] >  B[0]) \
+    or (C[1] >  B[1]) \
     or (D[0] >  B[0]) \
     or (D[1] >  B[1]):
         return False
