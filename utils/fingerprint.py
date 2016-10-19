@@ -4,6 +4,9 @@ from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from scipy.misc import comb
 from pydub import AudioSegment
+import matplotlib.pyplot as plt
+import matplotlib.path as mpath
+import matplotlib.patches as mpatches
 
 def _load(path, downsample=True, normalize=True, snip=None):
     """
@@ -11,8 +14,8 @@ def _load(path, downsample=True, normalize=True, snip=None):
     snip = only return first n seconds of input
     """
     audio = AudioSegment.from_file(path)
-    # downsample if stereo, sample rate > 16kHz, or > 16-bit depth
     if downsample:
+        # downsample if stereo, sample rate > 16kHz, or > 16-bit depth
         if (audio.channels > 1) \
           or (audio.frame_rate != 16000) \
           or (audio.sample_width != 2):
@@ -87,31 +90,35 @@ def _create_quads(peaks, q, r, n, k=497):
               R = 985
               N = 8
     """
+    counter = 0
     quads = []
-    endX = peaks[-1][0]
+    endBound = peaks[-1][0]
     for A in peaks:
         windowStart = A[0] + k - (r / 2)
-        if windowStart > endX:
+        if windowStart > endBound:
             continue
         windowEnd = windowStart + r
         filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
         if filtered is None:
             continue
-        print "\nA:\t{A}, start:\t{s}, end:\t{e}\n\n{filter}".format(A = A, s = windowStart, e = windowEnd, filter = filtered)
-        """
         offset = 0
-        while (len(quads) < q) and (offset + n < len(filtered)): # check boundaries
+        valid = []
+        while (len(valid) < q) and (offset + n < len(filtered)): # check boundaries
             take = filtered[offset : offset + n]
-            combs = list(itertools.combinations(take, n))
+            combs = list(itertools.combinations(take, 3))
             for comb in combs:
                 # note that B is defined as point farthest from A
                 B = comb[2]
                 C = comb[0]
                 D = comb[1]
                 if _validate_quad(A, B, C, D) is True:
-                    quads.append((A, B, C, D))
+                    valid += [(A, B, C, D)]
+                if len(valid) >= 2:
+                    break
             offset += 1
-        """
+        if valid:
+            quads += valid
+    return quads
 
 def _validate_quad(A, B, C, D):
     if (A[0] >= B[0]) \
@@ -130,4 +137,5 @@ def fingerprint(path):
     samples = _load(path)
     spec = _stft(samples)
     peaks = _peaks(spec)
-    _create_quads(peaks, 2, 247, 5)
+    quads = _create_quads(peaks, 2, 247, 5)
+    return quads
