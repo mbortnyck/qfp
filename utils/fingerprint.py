@@ -5,17 +5,18 @@ from scipy.ndimage.filters import maximum_filter, minimum_filter
 from scipy.misc import comb
 from pydub import AudioSegment
 
-def _load(path, normalize=True, snip=None):
+def _load(path, downsample=True, normalize=True, snip=None):
     """
     Creates array of samples from input audio file
     snip = only return first n seconds of input
     """
     audio = AudioSegment.from_file(path)
     # downsample if stereo, sample rate > 16kHz, or > 16-bit depth
-    if (audio.channels > 1) \
-      or (audio.frame_rate != 16000) \
-      or (audio.sample_width != 2):
-        audio = _downsample(audio)
+    if downsample:
+        if (audio.channels > 1) \
+          or (audio.frame_rate != 16000) \
+          or (audio.sample_width != 2):
+            audio = _downsample(audio)
     if normalize:
         audio = _normalize(audio)
     if snip is not None:
@@ -26,7 +27,6 @@ def _load(path, normalize=True, snip=None):
 def _downsample(audio, numChannels=1, sampleRate=16000, bitDepth=2):
     """
     Downsamples audio to monoaural, 16kHz sample rate, 16-bit depth
-    Values defined by QFP paper
     """
     audio = audio.set_channels(numChannels)
     audio = audio.set_frame_rate(sampleRate)
