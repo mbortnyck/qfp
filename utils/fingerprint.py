@@ -1,6 +1,8 @@
+import itertools
 import numpy as np
 from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
+from scipy.misc import comb
 from pydub import AudioSegment
 
 def _load(path, normalize=True, snip=None):
@@ -11,23 +13,24 @@ def _load(path, normalize=True, snip=None):
     audio = AudioSegment.from_file(path)
     # downsample if stereo, sample rate > 16kHz, or > 16-bit depth
     if (audio.channels > 1) \
-    or (audio.frame_rate != 16000) \
-    or (audio.sample_width != 2):
+      or (audio.frame_rate != 16000) \
+      or (audio.sample_width != 2):
         audio = _downsample(audio)
     if normalize:
         audio = _normalize(audio)
     if snip is not None:
-        audio = audio[:(snip * 1000)]
+        milliseconds = snip * 1000
+        audio = audio[:milliseconds]
     return audio.get_array_of_samples()
 
-def _downsample(audio):
+def _downsample(audio, numChannels=1, sampleRate=16000, bitDepth=2):
     """
     Downsamples audio to monoaural, 16kHz sample rate, 16-bit depth
     Values defined by QFP paper
     """
-    audio = audio.set_channels(1)
-    audio = audio.set_frame_rate(16000)
-    audio = audio.set_sample_width(2)
+    audio = audio.set_channels(numChannels)
+    audio = audio.set_frame_rate(sampleRate)
+    audio = audio.set_sample_width(bitDepth)
     return audio
 
 def _normalize(audio, target_dBFS=-20.0):
@@ -37,19 +40,17 @@ def _normalize(audio, target_dBFS=-20.0):
     change_in_dBFS = target_dBFS - audio.dBFS
     return audio.apply_gain(change_in_dBFS)
 
-def _stft(samples):
+def _stft(samples, framesize=1024, hopsize=128):
     """
     Short time fourier transform of audio
     """
-    framesize = 1024 # defined in QFP paper
-    hopsize = 128    # also defined
     window = np.hanning(framesize)
     samples = np.append(np.zeros(int(framesize / 2)), samples)
     cols = int(np.ceil((len(samples) - framesize) / float(hopsize)) + 1)
     samples = np.append(samples, np.zeros(framesize))
     frames = stride_tricks.as_strided(samples, \
-             shape=(cols, framesize), \
-             strides=(samples.strides[0]*hopsize, samples.strides[0])).copy()
+               shape=(cols, framesize), \
+               strides=(samples.strides[0]*hopsize, samples.strides[0])).copy()
     frames *= window
     spec = np.fft.rfft(frames)
     with np.errstate(divide='ignore'): # silences "divide by zero" error
@@ -57,36 +58,76 @@ def _stft(samples):
     spec[spec == -np.inf] = 0 # infinite values to zero
     return spec
 
-def _peaks(spec):
+def _peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
-    Returns tuple of arrays representing indices of peaks
+    Returns list of tuples
     """
-    maxFilterDimen = (91, 65)
-    minFilterDimen = (3, 3)
+    maxFilterDimen = (maxWidth, maxHeight)
+    minFilterDimen = (minWidth, minHeight)
     maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
     minima = minimum_filter(spec, footprint=np.ones(minFilterDimen, dtype=np.int8))
-    peaks = ((spec == maxima) == (maxima != minima)).astype(int)
-    pos = np.nonzero(peaks)
-    return pos
+    peaks = ((spec == maxima) == (maxima != minima))
+    x, y = np.nonzero(peaks)
+    positions = zip(x, y)
+    return positions
 
-def _quads(peaks, r, n, k=10):
+def _create_quads(peaks, q, r, n, k=497):
     """
-    finds valid quads of a given set of peak positions
+    finds valid quads for each peak
     k should be same between ref/query
-    r and n should be smaller for ref, larger for query [1]
+    r and n should be smaller for ref, larger for query
+    
+    Suggested values for reference/quad parameters:
+        Ref   Q = 2
+              R = 247
+              N = 5
+        Query Q = 500
+              R = 985
+              N = 8
     """
-    rate = 124
-    i = 0
-    while len(quads) < n:
-        a = peaks[i]
-        i += 1
-    return quads
+    quads = []
+    endX = peaks[-1][0]
+    for A in peaks:
+        windowStart = A[0] + k - (r / 2)
+        if windowStart > endX:
+            continue
+        windowEnd = windowStart + r
+        filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
+        if filtered is None:
+            continue
+        print "\nA:\t{A}, start:\t{s}, end:\t{e}\n\n{filter}".format(A = A, s = windowStart, e = windowEnd, filter = filtered)
+        """
+        offset = 0
+        while (len(quads) < q) and (offset + n < len(filtered)): # check boundaries
+            take = filtered[offset : offset + n]
+            combs = list(itertools.combinations(take, n))
+            for comb in combs:
+                # note that B is defined as point farthest from A
+                B = comb[2]
+                C = comb[0]
+                D = comb[1]
+                if _validate_quad(A, B, C, D) is True:
+                    quads.append((A, B, C, D))
+            offset += 1
+        """
+
+def _validate_quad(A, B, C, D):
+    if (A[0] >= B[0]) \
+    or (A[1] >= B[1]) \
+    or (A[0] >= C[0]) \
+    or (A[1] >= C[1]) \
+    or (D[0] >  B[0]) \
+    or (D[1] >  B[1]):
+        return False
+    else:
+        return True
+
+#def quads_to_hashes():
 
 def fingerprint(path):
     samples = _load(path)
     spec = _stft(samples)
     peaks = _peaks(spec)
-    #quads = _quads(pos)
-    return peaks
+    _create_quads(peaks, 2, 247, 5)
