@@ -89,6 +89,7 @@ def _create_quads(peaks, q, r, n, k=497):
     """
     counter = 0
     quads = []
+    quads2 = []
     endBound = peaks[-1][0]
     for A in peaks:
         windowStart = A[0] + k - (r / 2)
@@ -105,10 +106,8 @@ def _create_quads(peaks, q, r, n, k=497):
             combs = list(itertools.combinations(take, 3))
             for comb in combs:
                 # note that B is defined as point farthest from A
-                B = comb[2]
-                C = comb[0]
-                D = comb[1]
-                if _validate_quad(A, B, C, D) is True:
+                B, C, D = (comb[2], comb[0], comb[1])
+                if _validate_quad(A, B, C, D):
                     validQuads += [(A, B, C, D)]
                 if len(validQuads) >= 2:
                     break
@@ -118,16 +117,18 @@ def _create_quads(peaks, q, r, n, k=497):
     return quads
 
 def _validate_quad(A, B, C, D):
-    if (A[0] >= B[0]) \
-    or (A[1] >= B[1]) \
-    or (A[0] >= C[0]) \
-    or (A[1] >= C[1]) \
-    or (A[0] >= D[0]) \
-    or (A[1] >= D[1]) \
-    or (C[0] >  B[0]) \
-    or (C[1] >  B[1]) \
-    or (D[0] >  B[0]) \
-    or (D[1] >  B[1]):
+    """
+    evaluates:
+          Ax < Bx
+          Ay < By
+      Ax < Cx,Dx <= Bx
+      Ay < Cy,Dy <= By
+    """
+    if A[0] is B[0] or A[0] is C[0]:
+        return False
+    elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
+        return False
+    elif C[1] > B[1] or D[1] > B[1]:
         return False
     else:
         return True
