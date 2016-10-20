@@ -97,14 +97,14 @@ def _create_quads(peaks, q, r, n, k=497):
         if filtered is None:
             continue
         offset = 0
-        validQuads = [(0, 0, 0, 0)]
+        validQuads = []
         while (len(validQuads) < q) and (offset + n < len(filtered)): # check boundaries
             take = filtered[offset : offset + n]
             combs = list(itertools.combinations(take, 3))
             for comb in combs:
                 # note that B is defined as point farthest from A
                 B, C, D = (comb[2], comb[0], comb[1])
-                if _validate_quad(A, B, C, D):
+                if _validate_quad(A, B, C, D, validQuads):
                     validQuads += [[A, B, C, D]]
                 if len(validQuads) >= q:
                     break
@@ -113,7 +113,7 @@ def _create_quads(peaks, q, r, n, k=497):
             quads += validQuads
     return quads
 
-def _validate_quad(A, B, C, D):
+def _validate_quad(A, B, C, D, quads):
     """
     evaluates:
           Ax < Bx
@@ -121,7 +121,8 @@ def _validate_quad(A, B, C, D):
       Ax < Cx,Dx <= Bx
       Ay < Cy,Dy <= By
 
-    Assumes list of combinations is sorted
+    then checks if quad is a duplicate
+    assumes list of combinations is sorted
     """
     if A[0] is B[0] or A[0] is C[0]:
         return False
@@ -129,8 +130,10 @@ def _validate_quad(A, B, C, D):
         return False
     elif C[1] > B[1] or D[1] > B[1]:
         return False
-    else:
-        return True
+    for quad in quads:
+        if [A, B, C, D] == quad:
+            return False
+    return True
 
 def _hash(quad):
     hashed = ()
@@ -147,18 +150,7 @@ def fingerprint(path):
     spec = _stft(samples)
     peaks = _peaks(spec)
     quads = _create_quads(peaks, 2, 247, 5)
-    iter = 1
-    for i in range(len(quads)-1):
-        if quads[i] == quads[i+1]:
-            print "qError {iter}: hash: ".format(iter = iter), i
-            print "quad i: {q1}\nquad i+1: {q2}\n".format(q1 = quads[i], q2 = quads[i+1])
-            iter += 1
     hashes = []
     for quad in quads:
         hashes += _hash(quad)
-    iter = 1
-    for i in range(len(hashes)-1):
-        if hashes[i] == hashes[i+1]:
-            print "error {iter}: hash: ".format(iter = iter), i
-            iter += 1
     return hashes
