@@ -2,7 +2,6 @@ import itertools
 import numpy as np
 from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
-from scipy.misc import comb
 from pydub import AudioSegment
 
 def _load(path, downsample=True, normalize=True, snip=None):
@@ -87,20 +86,18 @@ def _create_quads(peaks, q, r, n, k=497):
               R = 985
               N = 8
     """
-    counter = 0
     quads = []
-    quads2 = []
-    endBound = peaks[-1][0]
+    endOfTrack = peaks[-1][0]
     for A in peaks:
         windowStart = A[0] + k - (r / 2)
-        if windowStart > endBound:
-            continue
+        if windowStart > endOfTrack:
+            break
         windowEnd = windowStart + r
         filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
         if filtered is None:
             continue
         offset = 0
-        validQuads = []
+        validQuads = [(0, 0, 0, 0)]
         while (len(validQuads) < q) and (offset + n < len(filtered)): # check boundaries
             take = filtered[offset : offset + n]
             combs = list(itertools.combinations(take, 3))
@@ -108,8 +105,8 @@ def _create_quads(peaks, q, r, n, k=497):
                 # note that B is defined as point farthest from A
                 B, C, D = (comb[2], comb[0], comb[1])
                 if _validate_quad(A, B, C, D):
-                    validQuads += [(A, B, C, D)]
-                if len(validQuads) >= 2:
+                    validQuads += [[A, B, C, D]]
+                if len(validQuads) >= q:
                     break
             offset += 1
         if validQuads:
@@ -123,6 +120,8 @@ def _validate_quad(A, B, C, D):
           Ay < By
       Ax < Cx,Dx <= Bx
       Ay < Cy,Dy <= By
+
+    Assumes list of combinations is sorted
     """
     if A[0] is B[0] or A[0] is C[0]:
         return False
@@ -133,11 +132,33 @@ def _validate_quad(A, B, C, D):
     else:
         return True
 
-#def quads_to_hashes():
+def _hash(quad):
+    hashed = ()
+    A = quad[0]
+    B = quad[1]
+    for point in quad[2:4]:
+        xDash = (point[0] - A[0]) * (1.0 / (B[0] - A[0]))
+        yDash = (point[1] - A[1]) * (1.0 / (B[1] - A[1]))
+        hashed += (xDash, yDash)
+    return [hashed]
 
 def fingerprint(path):
     samples = _load(path)
     spec = _stft(samples)
     peaks = _peaks(spec)
     quads = _create_quads(peaks, 2, 247, 5)
-    return quads
+    iter = 1
+    for i in range(len(quads)-1):
+        if quads[i] == quads[i+1]:
+            print "qError {iter}: hash: ".format(iter = iter), i
+            print "quad i: {q1}\nquad i+1: {q2}\n".format(q1 = quads[i], q2 = quads[i+1])
+            iter += 1
+    hashes = []
+    for quad in quads:
+        hashes += _hash(quad)
+    iter = 1
+    for i in range(len(hashes)-1):
+        if hashes[i] == hashes[i+1]:
+            print "error {iter}: hash: ".format(iter = iter), i
+            iter += 1
+    return hashes
