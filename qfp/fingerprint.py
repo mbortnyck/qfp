@@ -1,14 +1,14 @@
 from .audio import load_audio
-from .utils import stft, peaks, quad_hash
-from .quads import quads
+from .utils import stft, find_peaks, quad_hash
+from .quads import root_quads
 
 def fingerprint(path):
     samples = load_audio(path)
     spec = stft(samples)
-    peaks = peaks(spec)
+    peaks = find_peaks(spec)
     quads = []
     for root in peaks:
-        quads += quads(root, peaks, 2, 247, 5)
+        quads += root_quads(root, peaks, 2, 247, 5)
     hashes = []
     for quad in quads:
         hashes += quad_hash(quad)

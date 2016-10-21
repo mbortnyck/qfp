@@ -1,6 +1,8 @@
+# This Python file uses the following encoding: utf-8
+
 import itertools
 
-def quads(root, peaks, q, r, n, k=497):
+def root_quads(root, peaks, q, r, n, k=497):
     """
     finds valid quads for given root
     k should be same between ref/query
@@ -19,7 +21,7 @@ def quads(root, peaks, q, r, n, k=497):
     filtered = _filter_peaks(A, peaks, r, k)
     if filtered is None:
         return []
-    found = _find_quads(A, filtered, q)
+    found = _find_quads(A, filtered, q, n)
     if found is not None:
         quads += found
     return quads
@@ -38,7 +40,7 @@ def _filter_peaks(A, peaks, r, k):
         return None
     return filtered
 
-def _find_quads(A, filtered, q):
+def _find_quads(A, filtered, q, n):
     """
     returns list of validated quads for given root (A)
     """

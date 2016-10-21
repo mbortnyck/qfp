@@ -20,7 +20,7 @@ def stft(samples, framesize=1024, hopsize=128):
     spec[spec == -np.inf] = 0 # infinite values to zero
     return spec
 
-def peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
+def find_peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
