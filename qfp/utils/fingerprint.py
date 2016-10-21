@@ -122,8 +122,8 @@ def _validate_quad(A, B, C, D, quads):
       Ay < Cy,Dy <= By
 
     then checks if quad is a duplicate
-    assumes list of combinations is sorted
     """
+    # assumes combinations were sorted by x value
     if A[0] is B[0] or A[0] is C[0]:
         return False
     elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
