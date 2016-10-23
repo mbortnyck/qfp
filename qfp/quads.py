@@ -2,37 +2,26 @@
 
 import itertools
 
-def root_quads(root, peaks, q, r, n, k=497):
+def root_quads(root, peaks, q, r, n, k):
     """
     finds valid quads for given root
-    k should be same between ref/query
-    r and n should be smaller for ref, larger for query
-    
-    Suggested values for reference/quad parameters:
-        Ref   Q = 2
-              R = 247
-              N = 5
-        Query Q = 500
-              R = 985
-              N = 8
     """
     quads = []
-    A = root
-    filtered = _filter_peaks(A, peaks, r, k)
+    filtered = _filter_peaks(root, peaks, r, k)
     if filtered is None:
         return []
-    found = _find_quads(A, filtered, q, n)
+    found = _find_quads(root, filtered, q, n)
     if found is not None:
         quads += found
     return quads
 
-def _filter_peaks(A, peaks, r, k):
+def _filter_peaks(root, peaks, r, k):
     """
     returns peaks inside window of Ax + k ± (r / 2)
     """
-    endOfTrack = peaks[-1][0]
-    windowStart = A[0] + k - (r / 2)
-    if windowStart > endOfTrack:
+    lastPeak = peaks[-1][0]
+    windowStart = root[0] + k - (r / 2)
+    if windowStart > lastPeak:
         return None
     windowEnd = windowStart + r
     filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
@@ -40,7 +29,7 @@ def _filter_peaks(A, peaks, r, k):
         return None
     return filtered
 
-def _find_quads(A, filtered, q, n):
+def _find_quads(root, filtered, q, n):
     """
     returns list of validated quads for given root (A)
     """
@@ -51,7 +40,7 @@ def _find_quads(A, filtered, q, n):
         combs = list(itertools.combinations(take, 3))
         for comb in combs:
             # note that B is defined as point farthest from A
-            B, C, D = (comb[2], comb[0], comb[1])
+            A, B, C, D = (root, comb[2], comb[0], comb[1])
             if _validate_quad(A, B, C, D, validQuads):
                 validQuads += [[A, B, C, D]]
             if len(validQuads) >= q:
@@ -72,7 +61,7 @@ def _validate_quad(A, B, C, D, quads):
 
     then checks if quad is a duplicate
     """
-    # !! assumes combinations were sorted by x value
+    # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
     if A[0] is B[0] or A[0] is C[0]:
         return False
