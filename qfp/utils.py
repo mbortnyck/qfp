@@ -17,7 +17,7 @@ def stft(samples, framesize=1024, hopsize=128):
     spec = np.fft.rfft(frames)
     with np.errstate(divide='ignore'): # silences "divide by zero" error
         spec = 20.*np.log10(np.abs(spec)/10e-6) # amplitude to decibel
-    spec[spec == -np.inf] = 0 # infinite values to zero
+    spec[spec == -np.inf] = 0
     return spec
 
 def find_peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
@@ -38,9 +38,9 @@ def find_peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
 def quad_hash(quad):
     hashed = ()
     A = quad[0]
-    B = quad[1]
-    for point in quad[2:4]:
-        xDash = (point[0] - A[0]) * (1.0 / (B[0] - A[0]))
-        yDash = (point[1] - A[1]) * (1.0 / (B[1] - A[1]))
+    D = quad[3]
+    for point in quad[1:3]:
+        xDash = (point[0] - A[0]) * (1.0 / (D[0] - A[0]))
+        yDash = (point[1] - A[1]) * (1.0 / (D[1] - A[1]))
         hashed += (xDash, yDash)
     return [hashed]

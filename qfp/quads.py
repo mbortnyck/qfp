@@ -40,7 +40,7 @@ def _find_quads(root, filtered, q, n):
         combs = list(itertools.combinations(take, 3))
         for comb in combs:
             # note that B is defined as point farthest from A
-            A, B, C, D = (root, comb[2], comb[0], comb[1])
+            A, B, C, D = (root, comb[0], comb[1], comb[2])
             if _validate_quad(A, B, C, D, validQuads):
                 validQuads += [[A, B, C, D]]
             if len(validQuads) >= q:
@@ -54,20 +54,20 @@ def _find_quads(root, filtered, q, n):
 def _validate_quad(A, B, C, D, quads):
     """
     evaluates:
-          Ax < Bx
-          Ay < By
-      Ax < Cx,Dx <= Bx
-      Ay < Cy,Dy <= By
+          Ax < Dx
+          Ay < Dy
+      Ax < Bx,Cx <= Dx
+      Ay < By,Cy <= Dy
 
     then checks if quad is a duplicate
     """
     # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
-    if A[0] is B[0] or A[0] is C[0]:
+    if A[0] is D[0] or A[0] is C[0]:
         return False
     elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
         return False
-    elif C[1] > B[1] or D[1] > B[1]:
+    elif B[1] > D[1] or C[1] > D[1]:
         return False
     for quad in quads:
         if [A, B, C, D] == quad:
