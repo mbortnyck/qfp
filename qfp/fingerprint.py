@@ -23,8 +23,6 @@ def fingerprint(path, q=2, r=247, n=5, k=497):
     """
     samples = load_audio(path)
     spectrogram = stft(samples)
-    # to-do: should check if spectrogram is sufficient
-    # lenth for fingerprinting here
     if len(spectrogram) < k:
         raise InvalidAudioLength(
             "'{file}' did not produce spectrogram of sufficient length for k value provided".format(file = path))
