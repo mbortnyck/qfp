@@ -21,7 +21,7 @@ def load_audio(path, downsample=True, normalize=True, target_dBFS=-20.0, snip=No
 
 def _downsample(audio, numChannels=1, sampleRate=16000, bitDepth=2):
     """
-    returns downsampled AudioSegment
+    Returns downsampled AudioSegment
     """
     audio = audio.set_channels(numChannels)
     audio = audio.set_frame_rate(sampleRate)
@@ -30,7 +30,7 @@ def _downsample(audio, numChannels=1, sampleRate=16000, bitDepth=2):
 
 def _normalize(audio, target_dBFS):
     """
-    normalizes loudness of AudioSegment
+    Normalizes loudness of AudioSegment
     """
     change_in_dBFS = target_dBFS - audio.dBFS
     return audio.apply_gain(change_in_dBFS)

@@ -20,12 +20,14 @@ def stft(samples, framesize=1024, hopsize=128):
     spec[spec == -np.inf] = 0
     return spec
 
-def find_peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
+def find_peaks(spec, dbGate=None, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
     Returns list of tuples
     """
+    if dbGate is not None:
+        spec[spec < dbGate] = 0
     maxFilterDimen = (maxWidth, maxHeight)
     minFilterDimen = (minWidth, minHeight)
     maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
@@ -36,6 +38,9 @@ def find_peaks(spec, maxWidth=91, maxHeight=65, minWidth=3, minHeight=3):
     return positions
 
 def quad_hash(quad):
+    """
+    Compute translation- and scale-invariant hash from a given quad
+    """
     hashed = ()
     A = quad[0]
     D = quad[3]
