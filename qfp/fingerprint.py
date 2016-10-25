@@ -32,10 +32,11 @@ class Fingerprint:
             raise InvalidFpType(
                 "Fingerprint must be type 'Reference' or 'Query'")
 
-    def create(self, dbGate=150):
+    def create(self, **kwargs):
         """
         Returns quad hashes for a given audio file
         """
+        dbGate = kwargs.pop('dbGate', 150)
         q, r, n, k = self.params
         samples = load_audio(self.path)
         spectrogram = stft(samples)

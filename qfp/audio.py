@@ -1,10 +1,16 @@
 from pydub import AudioSegment
 
-def load_audio(path, downsample=True, normalize=True, target_dBFS=-20.0, snip=None):
+from .exceptions import InvalidAudioLength
+
+def load_audio(path, **kwargs):
     """
     Creates array of samples from input audio file
     snip = only return first n seconds of input
     """
+    downsample = kwargs.pop("downsample", True)
+    normalize = kwargs.pop("normalize", True)
+    target_dBFS = kwargs.pop("target_dbFS", -20.0)
+    snip = kwargs.pop("snip", None)
     audio = AudioSegment.from_file(path)
     if downsample:
         # if stereo, sample rate > 16kHz, or > 16-bit depth
@@ -14,6 +20,9 @@ def load_audio(path, downsample=True, normalize=True, target_dBFS=-20.0, snip=No
             audio = _downsample(audio)
     if normalize and audio.dBFS is not target_dBFS:
         audio = _normalize(audio, target_dBFS)
+    if snip > audio.duration_seconds:
+        raise InvalidAudioLength(
+            "Provided snip length is longer than audio file")
     if snip is not None and audio.duration_seconds > snip:
         milliseconds = snip * 1000
         audio = audio[:milliseconds]

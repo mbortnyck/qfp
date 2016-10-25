@@ -3,6 +3,8 @@ import os
 
 from qfp import Fingerprint, fpType
 
+from qfp.audio import load_audio
+
 from qfp.exceptions import (
     InvalidFpType,
     InvalidAudioLength,
@@ -21,17 +23,23 @@ class FingerprintTests(unittest.TestCase):
         self.ins_audio_length_path = os.path.join(dataDir, 'short_audio_sample.mp3')
         self.ins_peaks_path = os.path.join(dataDir, 'silence.mp3')
         self.no_quads_path = os.path.join(dataDir, 'few_peaks.mp3')
-    def test_InvalidAudioLength(self):
+    def test_k_too_large_for_provided_audio(self):
         ins_audio_length_fp = Fingerprint(self.ins_audio_length_path)
         self.assertRaises(InvalidAudioLength, ins_audio_length_fp.create)
-    def test_TooFewPeaks(self):
+    def test_too_few_peaks_to_form_quads(self):
         ins_peaks_fp = Fingerprint(self.ins_peaks_path)
         self.assertRaises(TooFewPeaks, ins_peaks_fp.create)
-    def test_NoQuadsFound(self):
+    def test_no_quads_found(self):
         no_quads_fp = Fingerprint(self.no_quads_path)
         self.assertRaises(NoQuadsFound, no_quads_fp.create, dbGate=220)
     def test_InvalidFpType(self):
         self.assertRaises(InvalidFpType, Fingerprint, self.no_quads_path, fp_type=[0])
+
+class AudioTests(unittest.TestCase):
+    def setUp(self):
+        self.ten_seconds_path = os.path.join(dataDir, 'silence.mp3')
+    def test_snip_greater_than_audio_length(self):
+        self.assertRaises(InvalidAudioLength, load_audio, self.ten_seconds_path, snip=15)
 
 if __name__ == "__main__":
     unittest.main()
