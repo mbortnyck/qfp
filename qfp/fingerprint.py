@@ -38,6 +38,7 @@ class Fingerprint:
         """
         dbGate = kwargs.pop('dbGate', 150)
         q, r, n, k = self.params
+        downsample
         samples = load_audio(self.path)
         spectrogram = stft(samples)
         if len(spectrogram) <= k:
