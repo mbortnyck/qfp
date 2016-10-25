@@ -10,3 +10,7 @@ class TooFewPeaks(Exception):
 
 class NoQuadsFound(Exception):
     pass
+
+
+class InvalidFpType(Exception):
+    pass

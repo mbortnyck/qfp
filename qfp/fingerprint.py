@@ -1,51 +1,58 @@
+from __future__ import division
+
 from .audio import load_audio
 from .utils import stft, find_peaks, quad_hash
 from .quads import root_quads
 
 from .exceptions import (
+    InvalidFpType,
     InvalidAudioLength,
     TooFewPeaks,
     NoQuadsFound
 )
 
 class fpType:
-    Reference, Query = range(1, 3)
+    """
+    Parameters for reference/query fingerprint types
+    Presented in order [q, r, n, k]
+
+    !! k must remain the same between reference/query !!
+    """
+    Reference = [2, 247, 5, 497]
+    Query = [500, 985, 8, 497]
 
 class Fingerprint:
     def __init__(self, path, fp_type=fpType.Reference):
         self.path = path
         if fp_type is fpType.Reference:
-            self.q = 2
-            self.r = 247
-            self.n = 5
-            self.k = 497
+            self.params = fp_type
         elif fp_type is fpType.Query:
-            self.q = 500
-            self.r = 985
-            self.n = 8
-            self.k = 497
+            self.params = fp_type
+        else:
+            raise InvalidFpType(
+                "Fingerprint must be type 'Reference' or 'Query'")
 
     def create(self, dbGate=150):
         """
         Returns quad hashes for a given audio file
         """
+        q, r, n, k = self.params
         samples = load_audio(self.path)
         spectrogram = stft(samples)
-        if len(spectrogram) <= self.k:
+        if len(spectrogram) <= k:
             raise InvalidAudioLength(
                 "'{file}' did not produce spectrogram of "
                 "sufficient length for k value provided".format(file=self.path))
-        peaks = find_peaks(spectrogram, dbGate=dbGate)
+        peaks = list(find_peaks(spectrogram, dbGate=dbGate))
         if len(peaks) < 4:
             raise TooFewPeaks(
                 "'{file}' contains too few peaks to form quads".format(file=self.path))
-        quads = []
+        self.quads = []
         for root in peaks:
-            quads += root_quads(root, peaks, self.q, self.r, self.n, self.k)
-        if len(quads) is 0:
+            self.quads += root_quads(root, peaks, q, r, n, k)
+        if len(self.quads) is 0:
             raise NoQuadsFound(
                 "'{file}' produced no quads".format(file=self.path))
-        hashes = []
-        for quad in quads:
-            hashes += quad_hash(quad)
-        return hashes
+        self.hashes = []
+        for quad in self.quads:
+            self.hashes += quad_hash(quad)

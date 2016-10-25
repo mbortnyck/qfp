@@ -1,15 +1,20 @@
 import unittest
 import os
 
-from qfp import Fingerprint
+from qfp.fingerprint import Fingerprint, fpType
 
 from qfp.exceptions import (
+    InvalidFpType,
     InvalidAudioLength,
     TooFewPeaks,
     NoQuadsFound
 )
 
 dataDir = os.path.join(os.path.dirname(__file__), 'data')
+
+class FpTypeTests(unittest.TestCase):
+    def test_k_values_are_equal(self):
+        self.assertEqual(fpType.Reference[3], fpType.Query[3])
 
 class FingerprintTests(unittest.TestCase):
     def setUp(self):
@@ -25,6 +30,8 @@ class FingerprintTests(unittest.TestCase):
     def test_NoQuadsFound(self):
         no_quads_fp = Fingerprint(self.no_quads_path)
         self.assertRaises(NoQuadsFound, no_quads_fp.create, dbGate=220)
+    def test_InvalidFpType(self):
+        self.assertRaises(InvalidFpType, Fingerprint, self.no_quads_path, fp_type=[0])
 
 if __name__ == "__main__":
     unittest.main()
