@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from qfp.fingerprint import Fingerprint, fpType
+from qfp import Fingerprint, fpType
 
 from qfp.exceptions import (
     InvalidFpType,

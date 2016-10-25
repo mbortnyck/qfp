@@ -1,1 +1,1 @@
-from .fingerprint import Fingerprint
+from .fingerprint import Fingerprint, fpType
