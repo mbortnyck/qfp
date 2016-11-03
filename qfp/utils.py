@@ -5,6 +5,7 @@ from scipy.ndimage.filters import maximum_filter, minimum_filter
 def stft(samples, framesize=1024, hopsize=128):
     """
     Short time fourier transform of audio
+    Returns: 2D numpy array of float64 values
     """
     window = np.hanning(framesize)
     samples = np.append(np.zeros(int(framesize / 2)), samples)
@@ -24,7 +25,7 @@ def find_peaks(spec, dbGate=None, maxWidth=91, maxHeight=65, minWidth=3, minHeig
     """
     Calculate peaks of spectrogram using maximum filter
     Local minima used to filter out uniform areas (e.g. silence)
-    Returns list of tuples
+    Returns: list of int8 tuples of form (x, y)
     """
     if dbGate is not None:
         spec[spec < dbGate] = 0
@@ -40,6 +41,7 @@ def find_peaks(spec, dbGate=None, maxWidth=91, maxHeight=65, minWidth=3, minHeig
 def quad_hash(quad):
     """
     Compute translation- and scale-invariant hash from a given quad
+    Returns: tuple of four float64 values
     """
     hashed = ()
     A = quad[0]

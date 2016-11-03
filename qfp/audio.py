@@ -23,7 +23,7 @@ def load_audio(path, **kwargs):
     if snip > audio.duration_seconds:
         raise InvalidAudioLength(
             "Provided snip length is longer than audio file")
-    if snip is not None and audio.duration_seconds > snip:
+    if snip is not None:
         milliseconds = snip * 1000
         audio = audio[:milliseconds]
     return audio.get_array_of_samples()

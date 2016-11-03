@@ -15,6 +15,10 @@ from qfp.exceptions import (
 dataDir = os.path.join(os.path.dirname(__file__), 'data')
 
 class FpTypeTests(unittest.TestCase):
+    def test_query_parameters_are_greater(self):
+        self.assertGreater(fpType.Query[0], fpType.Reference[0])
+        self.assertGreater(fpType.Query[1], fpType.Reference[1])
+        self.assertGreater(fpType.Query[2], fpType.Reference[2])
     def test_k_values_are_equal(self):
         self.assertEqual(fpType.Reference[3], fpType.Query[3])
 
