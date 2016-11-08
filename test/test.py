@@ -1,7 +1,12 @@
 import unittest
 import os
 
-from qfp import Fingerprint, fpType
+from qfp.fingerprint import (
+    fpType,
+    Fingerprint,
+    ReferenceFingerprint,
+    QueryFingerprint
+)
 
 from qfp.audio import load_audio
 
@@ -28,13 +33,13 @@ class FingerprintTests(unittest.TestCase):
         self.ins_peaks_path = os.path.join(dataDir, 'silence.mp3')
         self.no_quads_path = os.path.join(dataDir, 'few_peaks.mp3')
     def test_k_too_large_for_provided_audio(self):
-        ins_audio_length_fp = Fingerprint(self.ins_audio_length_path)
+        ins_audio_length_fp = ReferenceFingerprint(self.ins_audio_length_path)
         self.assertRaises(InvalidAudioLength, ins_audio_length_fp.create)
     def test_too_few_peaks_to_form_quads(self):
-        ins_peaks_fp = Fingerprint(self.ins_peaks_path)
+        ins_peaks_fp = ReferenceFingerprint(self.ins_peaks_path)
         self.assertRaises(TooFewPeaks, ins_peaks_fp.create)
     def test_no_quads_found(self):
-        no_quads_fp = Fingerprint(self.no_quads_path)
+        no_quads_fp = ReferenceFingerprint(self.no_quads_path)
         self.assertRaises(NoQuadsFound, no_quads_fp.create, dbGate=220)
     def test_InvalidFpType(self):
         self.assertRaises(InvalidFpType, Fingerprint, self.no_quads_path, fp_type=[0])
