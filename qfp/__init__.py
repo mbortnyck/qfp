@@ -1,1 +1,1 @@
-from .fingerprint import Fingerprint, fpType
+from .fingerprint import ReferenceFingerprint, QueryFingerprint

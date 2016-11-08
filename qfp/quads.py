@@ -52,23 +52,25 @@ def _find_quads(root, filtered, q, n):
 
 def _validate_quad(A, B, C, D, quads):
     """
-    evaluates:
+    Checks if quad is a duplicate
+
+    Then evaluates:
           Ax < Dx
           Ay < Dy
       Ax < Bx,Cx <= Dx
       Ay < By,Cy <= Dy
-
-    then checks if quad is a duplicate
     """
     # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
-    if A[0] is D[0] or A[0] is C[0]:
-        return False
-    elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
-        return False
-    elif B[1] > C[1] or B[1] > D[1] or C[1] > D[1]:
-        return False
     for quad in quads:
         if [A, B, C, D] == quad:
             return False
+    if A[0] == B[0] or B[0] == C[0] or C[0] == D[0]:
+        return False
+    elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
+        return False
+    elif B[1] >= C[1] or B[1] >= D[1] or C[1] >= D[1]:
+        return False
+    elif (C[0] - B[0]) <= 8 or (C[1] - B[1]) <= 4:
+        return False
     return True

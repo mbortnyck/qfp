@@ -11,10 +11,18 @@ from .exceptions import (
     NoQuadsFound
 )
 
+from rtree import index
+from rtree.core import RTreeError
+
 class fpType:
     """
     Parameters for reference/query fingerprint types
     Presented in order [q, r, n, k]
+
+    q = quads to create per root point (A)
+    r = width of search window
+    n = number of points to combinations from
+    k = distance from root point to position window
 
     !! k must remain the same between reference/query
     """
@@ -22,7 +30,9 @@ class fpType:
     Query = [500, 985, 8, 497]
 
 class Fingerprint:
-    def __init__(self, path, fp_type=fpType.Reference):
+    idx = index.Rtree('rtree')
+
+    def __init__(self, path, fp_type):
         self.path = path
         if fp_type is not fpType.Reference and fp_type is not fpType.Query:
             raise InvalidFpType(
@@ -56,6 +66,34 @@ class Fingerprint:
         self.hashes = []
         for quad in self.quads:
             self.hashes += quad_hash(quad)
+        # debug
+        """
+        xgap = 0
+        ygap = 0
+        for i in xrange(len(self.hashes)):
+            if (self.hashes[i][2] - self.hashes[i][0]) <= .01:
+                if (self.quads[i][2][0] - self.quads[i][1][0]) > xgap:
+                    print "error: ", self.quads[i]
+                    print self.hashes[i]
+                    xgap = self.quads[i][2][0] - self.quads[i][1][0]
+                    print "*****************\n\t", xgap, "\n*****************"
+            if (self.hashes[i][3] - self.hashes[i][1]) <= .01:
+                if (self.quads[i][2][1] - self.quads[i][1][1]) > ygap:
+                    print "error: ", self.quads[i]
+                    print self.hashes[i]
+                    ygap = self.quads[i][2][1] - self.quads[i][1][1]
+                    print "*****************\n\t", ygap, "\n*****************"
+        print "xgap: ", xgap
+        print "ygap: ", ygap
+        """
+
+class ReferenceFingerprint(Fingerprint):
+    def __init__(self, path):
+        Fingerprint.__init__(self, path, fp_type=fpType.Reference)
+
+    def create_and_store(self):
+        self.create()
+        self.store()
 
     def store(self, **kwargs):
         """
@@ -67,11 +105,48 @@ class Fingerprint:
         3.) reftree = rtree data structure
         4.) refpeaktrees -> two dimensional search trees for spectral peaks
         """
-        idx = index.Rtree('rtree')
-        for quad_hash in self.hashes:
-            idx.insert(quadid, quad_hash)
+        quadid = 0
+        count = 1
+        for i in xrange(len(self.hashes)):
+            try:
+                h = self.hashes[i]
+                self.idx.insert((i+1), (h[0], h[1], h[2], h[3]))
+            except RTreeError:
+                print "count: ", count
+                print "\t", h
+                count += 1
+            quadid += 1
 
+class QueryFingerprint(Fingerprint):
+    epsilon = .008
 
+    def __init__(self, path):
+        Fingerprint.__init__(self, path, fp_type=fpType.Query)
+
+    def create_and_lookup(self):
+        self.create()
+        self.lookup()
+
+    def create(self):
+        Fingerprint.create(self, snip=15)
+
+    def lookup(self, **kwargs):
+        for h in self.hashes:
+            mini = (h[0]+self.epsilon, h[1]+self.epsilon, \
+                    h[2]-self.epsilon, h[3]-self.epsilon)
+            maxi = (h[0]-self.epsilon, h[1]-self.epsilon, \
+                    h[2]+self.epsilon, h[3]+self.epsilon)
+            # if bounds in original hash are closer than epsilon apart
+            # coordinates of minimum bounds will be invalid for rtree intersection
+            # quad hash will be skipped until I can find a suitable solution for this
+            if (mini[2] - mini[0]) <= 0:
+                continue
+            if (mini[3] - mini[1]) <= 0:
+                continue
+            hits = set(self.idx.intersection(maxi))
+            hits_extra = set(self.idx.intersection(mini))
+            things = hits - hits_extra
+            print things
 
 
 
