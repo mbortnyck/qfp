@@ -37,8 +37,8 @@ def _find_quads(root, filtered, q, n):
     offset = 0
     while len(validQuads) < q and offset + n <= len(filtered):
         take = filtered[offset : offset + n]
-        combs = list(itertools.combinations(take, 3))
-        for comb in combs:
+        # combs = list(itertools.combinations(take, 3))
+        for comb in itertools.combinations(take, 3):
             A, B, C, D = (root, comb[0], comb[1], comb[2])
             if _validate_quad(A, B, C, D, validQuads):
                 validQuads += [[A, B, C, D]]

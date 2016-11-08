@@ -3,6 +3,7 @@ from __future__ import division
 from .audio import load_audio
 from .utils import stft, find_peaks, quad_hash
 from .quads import root_quads
+from .store import bulk_load
 
 from .exceptions import (
     InvalidFpType,
@@ -30,7 +31,7 @@ class fpType:
     Query = [500, 985, 8, 497]
 
 class Fingerprint:
-    idx = index.Rtree('rtree')
+    idx = 0
 
     def __init__(self, path, fp_type):
         self.path = path
@@ -105,14 +106,7 @@ class ReferenceFingerprint(Fingerprint):
         3.) reftree = rtree data structure
         4.) refpeaktrees -> two dimensional search trees for spectral peaks
         """
-        quadid = 0
-        for i in xrange(len(self.hashes)):
-            try:
-                h = self.hashes[i]
-                self.idx.insert((i+1), (h[0], h[1], h[2], h[3]))
-            except RTreeError:
-                continue
-            quadid += 1
+        Fingerprint.idx = index.Rtree('rtree', bulk_load(self.hashes))
 
 class QueryFingerprint(Fingerprint):
     epsilon = .008
@@ -135,15 +129,22 @@ class QueryFingerprint(Fingerprint):
                     h[2]+self.epsilon, h[3]+self.epsilon)
             # if bounds in original hash are closer than epsilon apart
             # coordinates of minimum bounds will be invalid for rtree intersection
-            # quad hash will be skipped until I can find a suitable solution for this
-            if (mini[2] - mini[0]) <= 0:
+            # 
+            xcondition = ((mini[2] - mini[0]) <= 0)
+            ycondition = ((mini[3] - mini[1]) <= 0)
+            if xcondition and ycondition:
+                results = set(Fingerprint.idx.intersection(maxi))
+            elif xcondition:
                 continue
-            if (mini[3] - mini[1]) <= 0:
+                # filter out y values that lie outside of epsilon bounds
+            elif ycondition:
                 continue
-            hits = set(self.idx.intersection(maxi))
-            hits_extra = set(self.idx.intersection(mini))
-            things = hits - hits_extra
-            print things
+                # filter out x values that lie outside of epsilon bounds
+            else:
+                maxi_hits = set(Fingerprint.idx.intersection(maxi))
+                mini_hits = set(Fingerprint.idx.intersection(mini))
+                results = maxi_hits - mini_hits
+            print results
 
 
 
