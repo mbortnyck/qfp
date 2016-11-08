@@ -106,15 +106,12 @@ class ReferenceFingerprint(Fingerprint):
         4.) refpeaktrees -> two dimensional search trees for spectral peaks
         """
         quadid = 0
-        count = 1
         for i in xrange(len(self.hashes)):
             try:
                 h = self.hashes[i]
                 self.idx.insert((i+1), (h[0], h[1], h[2], h[3]))
             except RTreeError:
-                print "count: ", count
-                print "\t", h
-                count += 1
+                continue
             quadid += 1
 
 class QueryFingerprint(Fingerprint):

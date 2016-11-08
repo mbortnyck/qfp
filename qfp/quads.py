@@ -65,7 +65,7 @@ def _validate_quad(A, B, C, D, quads):
     for quad in quads:
         if [A, B, C, D] == quad:
             return False
-    if A[0] == B[0] or B[0] == C[0] or C[0] == D[0]:
+    if A[0] == B[0]:
         return False
     elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
         return False
