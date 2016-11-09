@@ -31,7 +31,7 @@ class fpType:
     Query = [500, 985, 8, 497]
 
 class Fingerprint:
-    idx = 0
+    idx = None
 
     def __init__(self, path, fp_type):
         self.path = path
@@ -106,7 +106,7 @@ class ReferenceFingerprint(Fingerprint):
         3.) reftree = rtree data structure
         4.) refpeaktrees -> two dimensional search trees for spectral peaks
         """
-        Fingerprint.idx = index.Rtree('rtree', bulk_load(self.hashes))
+        Fingerprint.idx = index.Index('rtree', bulk_load(self.hashes))
 
 class QueryFingerprint(Fingerprint):
     epsilon = .008
@@ -143,7 +143,7 @@ class QueryFingerprint(Fingerprint):
                 maxi_hits = set(Fingerprint.idx.intersection(maxi))
                 mini_hits = set(Fingerprint.idx.intersection(mini))
                 results = maxi_hits - mini_hits
-            print results
+            print len(results)
 
 
 
