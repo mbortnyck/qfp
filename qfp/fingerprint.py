@@ -128,18 +128,17 @@ class QueryFingerprint(Fingerprint):
             maxi = (h[0]-self.epsilon, h[1]-self.epsilon, \
                     h[2]+self.epsilon, h[3]+self.epsilon)
             # if bounds in original hash are closer than epsilon apart
-            # coordinates of minimum bounds will be invalid for rtree intersection
-            # 
+            # coordinates of minimum bounds will "flip" and be invalid
+            # until I can find a better solution, if only one (x or y) overlaps,
+            # lookup will be skipped
             xcondition = ((mini[2] - mini[0]) <= 0)
             ycondition = ((mini[3] - mini[1]) <= 0)
             if xcondition and ycondition:
                 results = set(Fingerprint.idx.intersection(maxi))
             elif xcondition:
                 continue
-                # filter out y values that lie outside of epsilon bounds
             elif ycondition:
                 continue
-                # filter out x values that lie outside of epsilon bounds
             else:
                 maxi_hits = set(Fingerprint.idx.intersection(maxi))
                 mini_hits = set(Fingerprint.idx.intersection(mini))
