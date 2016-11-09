@@ -67,7 +67,8 @@ class Fingerprint:
         self.hashes = []
         for quad in self.quads:
             self.hashes += quad_hash(quad)
-        # debug
+        # debug - used to figure out maximum gap between x and y values
+        # is needed to prevent overlapping boundaries in rtree lookup
         """
         xgap = 0
         ygap = 0
