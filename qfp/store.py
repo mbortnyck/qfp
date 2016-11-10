@@ -4,7 +4,7 @@ def bulk_load(hashes):
     """
     Generator function for storing hashes in rtree
     """
-    i = 1
+    hash_id = 1
     for (minx, miny, maxx, maxy) in hashes:
-        yield (i, (minx, miny, maxx, maxy), None)
-        i += 1
+        yield (hash_id, (minx, miny, maxx, maxy), None)
+        hash_id += 1
