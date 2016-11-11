@@ -3,7 +3,7 @@ from __future__ import division
 from .audio import load_audio
 from .utils import stft, find_peaks, quad_hash
 from .quads import root_quads
-from .store import bulk_load
+from .storage import bulk_load
 
 from .exceptions import (
     InvalidFpType,
