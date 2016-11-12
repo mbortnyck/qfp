@@ -10,6 +10,11 @@ from qfp.fingerprint import (
 
 from qfp.audio import load_audio
 
+from qfp.storage import (
+    pack_quad,
+    unpack_quad
+)
+
 from qfp.exceptions import (
     InvalidFpType,
     InvalidAudioLength,
@@ -49,6 +54,11 @@ class AudioTests(unittest.TestCase):
         self.ten_seconds_path = os.path.join(dataDir, 'silence.mp3')
     def test_snip_greater_than_audio_length(self):
         self.assertRaises(InvalidAudioLength, load_audio, self.ten_seconds_path, snip=15)
+
+class StorageTests(unittest.TestCase):
+    def test_pack_and_unpack(self):
+        quad = [(505, 90), (1050, 218), (1109, 284), (1110, 336)]
+        self.assertEqual(quad, unpack_quad(pack_quad(quad)))
 
 if __name__ == "__main__":
     unittest.main()
