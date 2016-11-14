@@ -1,8 +1,8 @@
 from __future__ import division
 
 from .audio import load_audio
-from .utils import stft, find_peaks, quad_hash
-from .quads import root_quads
+from .utils import stft, find_peaks
+from .quads import root_quads, quad_hash
 from .storage import bulk_load
 
 from .exceptions import (

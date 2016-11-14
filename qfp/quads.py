@@ -74,3 +74,17 @@ def _validate_quad(A, B, C, D, quads):
     elif (C[0] - B[0]) <= 8 or (C[1] - B[1]) <= 4:
         return False
     return True
+
+def quad_hash(quad):
+    """
+    Compute translation- and scale-invariant hash from a given quad
+    Returns: tuple of four float64 values
+    """
+    hashed = ()
+    A = quad[0]
+    D = quad[3]
+    for point in quad[1:3]:
+        xDash = (point[0] - A[0]) * (1.0 / (D[0] - A[0]))
+        yDash = (point[1] - A[1]) * (1.0 / (D[1] - A[1]))
+        hashed += (xDash, yDash)
+    return [hashed]
