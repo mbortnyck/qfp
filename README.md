@@ -1,5 +1,5 @@
 # qfp
-Qfp is a python library for creating audio fingerprints that are robust to changes in pitch and tempo. This method is ideal for ID'ing tracks from recordings like DJ sets, where the tracks are almost always played at a different tempo to match the mix (current audio fingerprinting methods are incapable of properly identifying tracks that have been modified in this way). Qfp is an implementation of the audio fingerprinting/recognition algorithms detailed in a 2016 academic paper by Reinhard Sonnleitner and Gerhard Widmer [1].
+Qfp is a python library for creating audio fingerprints that are robust to changes in pitch and tempo. This method is ideal for ID'ing music from recordings such as DJ sets where the tracks are commonly played at a different tempo. Qfp is an implementation of the audio fingerprinting/recognition algorithms detailed in a 2016 academic paper by Reinhard Sonnleitner and Gerhard Widmer [1].
 
 ## Quickstart
 Install using pip
@@ -14,16 +14,16 @@ pip install --upgrade https://github.com/mbortnyck/qfp/tarball/master
 git clone https://github.com/mbortnyck/qfp/
 ```
 
-Create a fingerprint from your reference audio
+You can create a fingerprint from your reference audio
 
 ```python
 from qfp import ReferenceFingerprint
 
-fp_r = ReferenceFingerprint("prince_-_kiss.mp3")
+fp_r = ReferenceFingerprint("Prince_-_Kiss.mp3")
 fp_r.create()
 ```
 
-... or a query fingerprint from an unidentified audio clip.
+... or a query fingerprint from an audio clip that you wish to identify.
 
 ```python
 from qfp import QueryFingerprint
@@ -31,6 +31,8 @@ from qfp import QueryFingerprint
 fp_q = QueryFingerprint("unknown_audio.wav")
 fp_q.create()
 ```
+
+Qfp currently accepts recordings in [any format that ffmpeg can handle](http://www.ffmpeg.org/general.html#File-Formats).
 
 ## Dependencies
 
