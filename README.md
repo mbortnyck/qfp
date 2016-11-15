@@ -5,26 +5,28 @@ Qfp is a python library for creating audio fingerprints that are robust to chang
 
 Create a fingerprint from your reference audio
 
-'''python
+```python
 from qfp import ReferenceFingerprint
 
 fp_r = ReferenceFingerprint("prince_-_kiss.mp3")
 fp_r.create()
-'''
+```
 
 ... or a query fingerprint from an unidentified audio clip.
 
-'''python
+```python
 from qfp import QueryFingerprint
 
 fp_q = QueryFingerprint("unknown_audio.wav")
 fp_q.create()
-'''
+```
 
 ## Dependencies
 
 pydub - [https://github.com/jiaaro/pydub](https://github.com/jiaaro/pydub)<br>
 ffmpeg - [https://github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg)<br>
+numpy - [https://github.com/numpy/numpy](https://github.com/numpy/numpy)<br>
+scipy - [https://github.com/scipy/scipy](https://github.com/scipy/scipy)<br>
 bitstring - [https://github.com/scott-griffiths/bitstring](https://github.com/scott-griffiths/bitstring)<br>
 
 ## Progress
