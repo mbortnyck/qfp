@@ -1,2 +1,2 @@
 # qfp
-Quad-based audio fingerprinting and recognition in Python
+Qfp creates audio fingerprints that are robust to changes in pitch and tempo. It is based on an academic paper by Reinhard Sonnleitner and Gerhard Widmer [1].
