@@ -4,13 +4,13 @@ Qfp is a python library for creating audio fingerprints that are robust to chang
 ## Quickstart
 Install using pip
 
-```python
+```
 pip install --upgrade https://github.com/mbortnyck/qfp/tarball/master
 ```
 
 ... or clone the repository.
 
-```python
+```
 git clone https://github.com/mbortnyck/qfp/
 ```
 
