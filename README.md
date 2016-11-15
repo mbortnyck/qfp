@@ -33,7 +33,7 @@ bitstring - [https://github.com/scott-griffiths/bitstring](https://github.com/sc
 #### Feature Extraction
 - [x] Load audio as array of samples
 - [x] Create STFT spectrogram from samples
-- [x] Calculate peaks of spectrogram
+- [x] Calculate peaks (local maxima) of spectrogram
 
 #### Quad Creation
 - [x] For each peak, create all possible quads
