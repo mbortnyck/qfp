@@ -1,5 +1,5 @@
 # qfp
-Qfp is a python library for creating audio fingerprints that are robust to changes in pitch and tempo. This method is ideal for ID'ing music from recordings such as DJ sets where the tracks are commonly played at a different tempo. Qfp is an implementation of the audio fingerprinting/recognition algorithms detailed in a 2016 academic paper by Reinhard Sonnleitner and Gerhard Widmer [1].
+Qfp is a python library for creating audio fingerprints that are robust to alterations in pitch and speed. This method is ideal for ID'ing music from recordings such as DJ sets where the tracks are commonly played at a different tempo than the original recording. Qfp is an implementation of the audio fingerprinting/recognition algorithms detailed in a 2016 academic paper by Reinhard Sonnleitner and Gerhard Widmer [1].
 
 ## Quickstart
 Install using pip
