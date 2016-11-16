@@ -41,3 +41,23 @@ def unpack_quad(bString):
     Format = 'uint:20' + (', uint:10' * 7)
     Ax, Ay, Bx, By, Cx, Cy, Dx, Dy = bString.unpack(Format)
     return [(Ax, Ay), (Bx + Ax, By), (Cx + Ax, Cy), (Dx + Ax, Dy)]
+
+def generate_spatial_key(hash):
+    """
+    Creates unique key for given hash
+    """
+    hash_no = 1
+    # find release ID, version, track, hash # etc.
+    bitstring = _pack_key(release_id, track_no, version, hash_no)
+    key = bitstring.unpack('int:64')
+    yield key
+    hash_no += 1
+
+def _pack_key(release_id, track_no, version, hash_no):
+    Format = 'uint:24, uint:8, uint:8, uint:24'
+    bitstring = pack(Format, release_id, track_no, version, hash_no)
+    key = bitstring.unpack('int:64')
+    return key
+
+
+

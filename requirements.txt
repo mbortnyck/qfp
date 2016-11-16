@@ -1,4 +1,0 @@
-pydub
-numpy
-scipy
-bitstring
