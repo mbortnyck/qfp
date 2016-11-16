@@ -10,4 +10,10 @@ setup(
   download_url = 'https://github.com/mbortnyck/qfp/tarball/0.1',
   keywords = ['audio', 'fingerprinting'],
   classifiers = [],
+  install_requires=[
+    'pydub',
+    'numpy',
+    'scipy',
+    'bitstring'
+    ]
 )
