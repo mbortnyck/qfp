@@ -15,5 +15,5 @@ setup(
     'numpy',
     'scipy',
     'bitstring'
-    ]
+    ],
 )
