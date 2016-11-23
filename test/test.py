@@ -47,7 +47,7 @@ class FingerprintTests(unittest.TestCase):
         no_quads_fp = ReferenceFingerprint(self.no_quads_path)
         self.assertRaises(NoQuadsFound, no_quads_fp.create, dbGate=220)
     def test_InvalidFpType(self):
-        self.assertRaises(InvalidFpType, Fingerprint, self.no_quads_path, fp_type=[0])
+        self.assertRaises(TypeError, Fingerprint, self.no_quads_path, fp_type=[0])
 
 class AudioTests(unittest.TestCase):
     def setUp(self):

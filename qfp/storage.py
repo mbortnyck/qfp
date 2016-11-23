@@ -1,5 +1,27 @@
-from rtree import index
+import sqlite3
 from bitstring import pack
+
+class Storage:
+    conn = None
+    c = None
+    rtree = None
+
+    def __init__(self):
+        if self.conn is None:
+            Storage.conn = sqlite3.connect("store.db")
+        if self.c is None:
+            Storage.c = Storage.conn.cursor()
+        if self.rtree is None:
+            Storage.rtree = Rtree(Storage.c)
+
+    def store_ReferenceFingerprint(self, fp):
+        if fp.params is not fpType.Reference:
+            raise TypeError("Provided fingerprint is not a ReferenceFingerprint")
+        print "neat"
+
+class Rtree:
+    def __init__(self, c):
+        c.execute("CREATE VIRTUAL TABLE IF NOT EXISTS reftree USING rtree(id, minX, maxX, minY, maxY);")
 
 def bulk_load(hashes):
     """
