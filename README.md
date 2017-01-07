@@ -36,8 +36,8 @@ Qfp currently accepts recordings in [any format that ffmpeg can handle](http://w
 
 ## Dependencies
 
-pydub     - [https://github.com/jiaaro/pydub](https://github.com/jiaaro/pydub)<br>
-ffmpeg    - [https://github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg)<br>
+pydub<tab><tab>- [https://github.com/jiaaro/pydub](https://github.com/jiaaro/pydub)<br>
+ffmpeg<tab>- [https://github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg)<br>
 numpy     - [https://github.com/numpy/numpy](https://github.com/numpy/numpy)<br>
 scipy     - [https://github.com/scipy/scipy](https://github.com/scipy/scipy)<br>
 bitstring - [https://github.com/scott-griffiths/bitstring](https://github.com/scott-griffiths/bitstring)<br>
