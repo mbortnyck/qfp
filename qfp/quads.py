@@ -37,39 +37,41 @@ def _find_quads(root, filtered, q):
     while len(validQuads) < q:
         # combs = list(itertools.combinations(take, 3))
         for comb in itertools.combinations(take, 3):
-            A, B, C, D = (root, comb[0], comb[1], comb[2])
-            if _validate_quad(A, B, C, D, validQuads):
-                validQuads += [[A, B, C, D]]
+            A, C, D, B = (root, comb[0], comb[1], comb[2])
+            if _validate_quad(A, C, D, B, validQuads):
+                validQuads += [[A, C, D, B]]
             if len(validQuads) >= q:
                 break
+        offset += 1
     if len(validQuads) is 0:
         return None
     else:
         return validQuads
 
-def _validate_quad(A, B, C, D, quads):
+def _validate_quad(A, C, D, B, quads):
     """
     Checks if quad is a duplicate
 
     Then evaluates:
-          Ax < Dx
-          Ay < Dy
-      Ax < Bx,Cx <= Dx
-      Ay < By,Cy <= Dy
+          Ax < Bx
+          Ay < By
+      Ax < Cx,Dx <= Bx
+      Ay < Cy,Dy <= By
     """
     # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
     for quad in quads:
-        if [A, B, C, D] == quad:
+        if [A, C, D, B] == quad:
             return False
     if A[0] == B[0]:
         return False
-    elif A[1] >= B[1] or A[1] >= C[1] or A[1] >= D[1]:
+    elif A[1] >= C[1] or A[1] >= D[1] or A[1] >= B[1]:
         return False
     elif B[1] >= C[1] or B[1] >= D[1] or C[1] >= D[1]:
         return False
-    elif (C[0] - B[0]) <= 8 or (C[1] - B[1]) <= 4:
-        return False
+    # what was this for?
+    """elif (C[0] - B[0]) <= 8 or (C[1] - B[1]) <= 4:
+        return False"""
     return True
 
 def generate_hashes(quads):
