@@ -72,19 +72,3 @@ class QueryFingerprint(Fingerprint):
         Fingerprint.__init__(self, path, fp_type=fpType.Query)
     def create(self):
         Fingerprint.create(self, snip=15)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

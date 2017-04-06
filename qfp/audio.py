@@ -1,6 +1,6 @@
 from pydub import AudioSegment
 
-def load_audio(path, downsample=True, normalize=True, target_dBFS=-20.0, snip=None):
+def load_audio(path, downsample=True, normalize=False, target_dBFS=-20.0, snip=None):
     """
     Creates array of samples from input audio file
     snip = only return first n seconds of input

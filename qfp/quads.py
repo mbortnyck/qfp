@@ -34,9 +34,7 @@ def _find_quads(root, filtered, q):
     returns list of validated quads for given root (A)
     """
     validQuads = []
-    offset = 0
-    while len(validQuads) < q and offset <= len(filtered):
-        take = filtered[offset : offset]
+    while len(validQuads) < q:
         # combs = list(itertools.combinations(take, 3))
         for comb in itertools.combinations(take, 3):
             A, B, C, D = (root, comb[0], comb[1], comb[2])
@@ -44,7 +42,6 @@ def _find_quads(root, filtered, q):
                 validQuads += [[A, B, C, D]]
             if len(validQuads) >= q:
                 break
-        offset += 1
     if len(validQuads) is 0:
         return None
     else:
