@@ -1,6 +1,8 @@
 import sqlite3
 from bitstring import pack
 
+from .fingerprint import fpType
+
 class Storage:
     conn = None
     c = None
@@ -17,20 +19,44 @@ class Storage:
     def store_ReferenceFingerprint(self, fp):
         if fp.params is not fpType.Reference:
             raise TypeError("Provided fingerprint is not a ReferenceFingerprint")
-        print "neat"
+        self.rtree.store(self.c, fp)
+
+    def lookup_QueryFingerprint(self, fp):
+        if fp.params is not fpType.Query:
+            raise TypeError("Provided fingerprint is not a QueryFingerprint")
+        for hash in fp.hashes:
+            self.rtree.lookup(self.c, hash, fp.epsilon)
 
 class Rtree:
     def __init__(self, c):
-        c.execute("CREATE VIRTUAL TABLE IF NOT EXISTS reftree USING rtree(id, minX, maxX, minY, maxY);")
+        c.execute("""CREATE VIRTUAL TABLE IF NOT EXISTS reftree 
+                     USING rtree(id, minX, maxX, minY, maxY);""")
 
-def bulk_load(hashes):
-    """
-    Generator function for storing hashes in rtree
-    """
-    hash_id = 1
-    for (minx, miny, maxx, maxy) in hashes:
-        yield (hash_id, (minx, miny, maxx, maxy), None)
-        hash_id += 1
+    def store(self, c, fp):
+        c.executemany("INSERT INTO reftree VALUES (?,?,?,?,?)", \
+                         self._bulk_store_hashes(fp.hashes))
+
+    def lookup(self, c, hash, epsilon):
+        bounds = self._create_bounds(hash, epsilon)
+        c.execute("""SELECT id
+                     FROM reftree
+                     WHERE minX BETWEEN ? AND ?
+                       AND maxX BETWEEN ? AND ?
+                       AND minY BETWEEN ? AND ?
+                       AND maxY BETWEEN ? AND ?""", bounds)
+        print(c.fetchall())
+
+    def _bulk_store_hashes(self, hashes):
+        id = 0
+        for hash in hashes:
+            yield (id, hash[0], hash[2], hash[1], hash[3])
+            id += 1
+
+    def _create_bounds(self, hash, epsilon):
+        return (hash[0] - epsilon, hash[0] + epsilon, # outer minX, inner minX
+                hash[2] - epsilon, hash[2] + epsilon, # outer maxX, inner maxX
+                hash[1] - epsilon, hash[1] + epsilon, # outer minY, inner minY
+                hash[3] - epsilon, hash[3] + epsilon) # outer maxY, inner maxY
 
 def pack_quad(quad):
     """
@@ -77,7 +103,7 @@ def generate_spatial_key(hash):
 
 def _pack_key(release_id, track_no, version, hash_no):
     Format = 'uint:24, uint:8, uint:8, uint:24'
-    bitstring = pack(Format, release_id, track_no, version, hash_no)
+    bitstring = pack(release_id, track_no, version, hash_no)
     key = bitstring.unpack('int:64')
     return key
 

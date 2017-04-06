@@ -2,41 +2,41 @@
 
 import itertools
 
-def root_quads(root, peaks, q, r, n, k):
+def root_quads(root, peaks, q, r, c):
     """
     finds valid quads for given root
     """
     quads = []
-    filtered = _filter_peaks(root, peaks, r, k)
+    filtered = _filter_peaks(root, peaks, r, c)
     if filtered is None:
         return []
-    found = _find_quads(root, filtered, q, n)
+    found = _find_quads(root, filtered, q)
     if found is not None:
         quads += found
     return quads
 
-def _filter_peaks(root, peaks, r, k):
+def _filter_peaks(root, peaks, r, c):
     """
-    returns peaks inside window of Ax + k ± (r / 2)
+    returns peaks inside window of Ax + c ± (r / 2)
     """
     lastPeak = peaks[-1][0]
-    windowStart = root[0] + k - (r / 2)
+    windowStart = root[0] + c - (r / 2)
     if windowStart > lastPeak:
-        return None
+        return None 
     windowEnd = windowStart + r
     filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
     if len(filtered) is 0:
         return None
     return filtered
 
-def _find_quads(root, filtered, q, n):
+def _find_quads(root, filtered, q):
     """
     returns list of validated quads for given root (A)
     """
     validQuads = []
     offset = 0
-    while len(validQuads) < q and offset + n <= len(filtered):
-        take = filtered[offset : offset + n]
+    while len(validQuads) < q and offset <= len(filtered):
+        take = filtered[offset : offset]
         # combs = list(itertools.combinations(take, 3))
         for comb in itertools.combinations(take, 3):
             A, B, C, D = (root, comb[0], comb[1], comb[2])
@@ -75,16 +75,17 @@ def _validate_quad(A, B, C, D, quads):
         return False
     return True
 
-def quad_hash(quad):
+def generate_hashes(quads):
     """
     Compute translation- and scale-invariant hash from a given quad
-    Returns: tuple of four float64 values
+    Yields: tuple of four float64 values
     """
-    hashed = ()
-    A = quad[0]
-    D = quad[3]
-    for point in quad[1:3]:
-        xDash = (point[0] - A[0]) * (1.0 / (D[0] - A[0]))
-        yDash = (point[1] - A[1]) * (1.0 / (D[1] - A[1]))
-        hashed += (xDash, yDash)
-    return [hashed]
+    for quad in quads:
+        hashed = ()
+        A = quad[0]
+        D = quad[3]
+        for point in quad[1:3]:
+            xDash = (point[0] - A[0]) * (1.0 / (D[0] - A[0]))
+            yDash = (point[1] - A[1]) * (1.0 / (D[1] - A[1]))
+            hashed += (xDash, yDash)
+        yield [hashed]
