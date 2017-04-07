@@ -29,8 +29,8 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     Local minima used to filter out uniform areas (e.g. silence)
     Returns: list of int8 tuples of form (x, y)
     """
-    if dbGate is not None:
-        spec[spec < dbGate] = 0
+    """if dbGate is not None:
+        spec[spec < dbGate] = 0"""
     maxFilterDimen = (maxWidth, maxHeight)
     minFilterDimen = (minWidth, minHeight)
     maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))

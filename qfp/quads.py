@@ -1,8 +1,9 @@
 # This Python file uses the following encoding: utf-8
+from __future__ import division
 
 import itertools
 
-def root_quads(root, peaks, q, r, c):
+def root_quads(root, peaks, r, c):
     """
     finds valid quads for given root
     """
@@ -10,7 +11,7 @@ def root_quads(root, peaks, q, r, c):
     filtered = _filter_peaks(root, peaks, r, c)
     if filtered is None:
         return []
-    found = _find_quads(root, filtered, q)
+    found = _find_quads(root, filtered)
     if found is not None:
         quads += found
     return quads
@@ -29,20 +30,15 @@ def _filter_peaks(root, peaks, r, c):
         return None
     return filtered
 
-def _find_quads(root, filtered, q):
+def _find_quads(root, filtered):
     """
     returns list of validated quads for given root (A)
     """
     validQuads = []
-    while len(validQuads) < q:
-        # combs = list(itertools.combinations(take, 3))
-        for comb in itertools.combinations(take, 3):
-            A, C, D, B = (root, comb[0], comb[1], comb[2])
-            if _validate_quad(A, C, D, B, validQuads):
-                validQuads += [[A, C, D, B]]
-            if len(validQuads) >= q:
-                break
-        offset += 1
+    for comb in itertools.combinations(filtered, 3):
+        A, C, D, B = (root, comb[0], comb[1], comb[2])
+        if _validate_quad(A, C, D, B, validQuads):
+            validQuads += [[A, C, D, B]]
     if len(validQuads) is 0:
         return None
     else:
@@ -53,38 +49,29 @@ def _validate_quad(A, C, D, B, quads):
     Checks if quad is a duplicate
 
     Then evaluates:
-          Ax < Bx
           Ay < By
-      Ax < Cx,Dx <= Bx
-      Ay < Cy,Dy <= By
+      Ax < Cx <= Dx <= Bx
+      Ay < Cy ,  Dy <= By
     """
     # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
     for quad in quads:
         if [A, C, D, B] == quad:
             return False
-    if A[0] == B[0]:
+    if A[1] >= B[1] or A[1] >= D[1]:
         return False
-    elif A[1] >= C[1] or A[1] >= D[1] or A[1] >= B[1]:
+    elif A[1] >= C[1] or C[1] >= B[1] or D[1] >= B[1]:
         return False
-    elif B[1] >= C[1] or B[1] >= D[1] or C[1] >= D[1]:
-        return False
-    # what was this for?
-    """elif (C[0] - B[0]) <= 8 or (C[1] - B[1]) <= 4:
-        return False"""
     return True
 
-def generate_hashes(quads):
+def generate_hash(quad):
     """
     Compute translation- and scale-invariant hash from a given quad
-    Yields: tuple of four float64 values
     """
-    for quad in quads:
-        hashed = ()
-        A = quad[0]
-        D = quad[3]
-        for point in quad[1:3]:
-            xDash = (point[0] - A[0]) * (1.0 / (D[0] - A[0]))
-            yDash = (point[1] - A[1]) * (1.0 / (D[1] - A[1]))
-            hashed += (xDash, yDash)
-        yield [hashed]
+    A, C, D, B = quad
+    B = (B[0] - A[0], B[1] - A[1])
+    C = (C[0] - A[0], C[1] - A[1])
+    D = (D[0] - A[0], D[1] - A[1])
+    cDash = (C[0] / B[0], C[1] / B[1])
+    dDash = (D[0] / B[0], D[1] / B[1])
+    return [[cDash, dDash]]
