@@ -1,5 +1,7 @@
 *.pyc
-kiss.mp3
+*.mp3
+*.db
+*.asd
 .DS_Store
 .DS_Store?
 .Trashes
