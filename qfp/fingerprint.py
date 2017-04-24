@@ -2,7 +2,7 @@ from __future__ import division
 
 from .audio import load_audio
 from .utils import stft, find_peaks
-from .quads import root_quads, generate_hash
+from .quads import find_quads, generate_hash
 
 class fpType:
     """
@@ -53,9 +53,7 @@ class Fingerprint:
         """if len(self.peaks) < 4:
             raise TooFewPeaks(
                 "'{file}' contains too few peaks to form quads".format(file=self.path))"""
-        self.quads = []
-        for root in self.peaks:
-            self.quads += root_quads(root, self.peaks, r, c)
+        self.quads = find_quads(self.peaks, r, c)
         """if len(self.quads) is 0:
             raise NoQuadsFound(
                 "'{file}' produced no quads".format(file=self.path))"""

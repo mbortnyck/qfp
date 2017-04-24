@@ -2,8 +2,19 @@
 from __future__ import division
 
 import itertools
+from bisect import bisect_left
+from heapq import nlargest
 
-def root_quads(root, peaks, r, c):
+def find_quads(peaks, r, c):
+    """
+    """
+    quads = []
+    for root in peaks:
+        quads += _root_quads(root, peaks, r, c)
+    strong_quads = _n_strongest(quads, 9)
+    return strong_quads
+
+def _root_quads(root, peaks, r, c):
     """
     finds valid quads for given root
     """
@@ -63,6 +74,32 @@ def _validate_quad(A, C, D, B, quads):
     elif A[1] >= C[1] or C[1] >= B[1] or D[1] >= B[1]:
         return False
     return True
+
+def _find_partitions(quads):
+    """
+    Returns list of indices where partitions of 250 (1 second) are
+    """
+    partitions = []
+    last_x = quads[-1][0][0]
+    num_partitions = last_x // 250
+    for i in xrange(num_partitions):
+        partitions.append(bisect_left(quads, [(i * 250, None)]))
+    partitions.append(len(quads))
+    return partitions
+
+def _n_strongest(quads, n):
+    """
+    Returns list of 9 strongest quads in each 1 second partition
+    Strongest is calculated by magnitudes of C and D in quad
+    """
+    strongest = []
+    partitions = _find_partitions(quads)
+    key = lambda x: (x[1][0] + x[1][1] + x[2][0] + x[2][1])
+    for i in xrange(1, len(partitions)):
+        start = partitions[i - 1]
+        end = partitions[i]
+        strongest += nlargest(n, quads[start:end], key)
+    return strongest
 
 def generate_hash(quad):
     """

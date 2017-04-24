@@ -1,2 +1,2 @@
 from .fingerprint import ReferenceFingerprint, QueryFingerprint
-from .storage import Storage
+# from .storage import Storage

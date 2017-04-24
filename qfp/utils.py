@@ -40,3 +40,9 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     x, y = np.nonzero(peaks)
     positions = zip(x, y)
     return positions
+
+def partition_quads(quads):
+    last_x = quads[-1][0][0]
+    num_partitions = last_x // 250
+    for i in xrange(num_partitions):
+        partitions.append(bisect_left(quads, ))
