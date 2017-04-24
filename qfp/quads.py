@@ -11,7 +11,7 @@ def find_quads(peaks, r, c):
     quads = []
     for root in peaks:
         quads += _root_quads(root, peaks, r, c)
-    strong_quads = _n_strongest(quads, 9)
+    strong_quads = _n_strongest(quads)
     return strong_quads
 
 def _root_quads(root, peaks, r, c):
@@ -75,19 +75,19 @@ def _validate_quad(A, C, D, B, quads):
         return False
     return True
 
-def _find_partitions(quads):
+def _find_partitions(quads, length=250):
     """
     Returns list of indices where partitions of 250 (1 second) are
     """
     partitions = []
     last_x = quads[-1][0][0]
-    num_partitions = last_x // 250
+    num_partitions = last_x // length
     for i in xrange(num_partitions):
-        partitions.append(bisect_left(quads, [(i * 250, None)]))
+        partitions.append(bisect_left(quads, [(i * length, None)]))
     partitions.append(len(quads))
     return partitions
 
-def _n_strongest(quads, n):
+def _n_strongest(quads, n=9):
     """
     Returns list of 9 strongest quads in each 1 second partition
     Strongest is calculated by magnitudes of C and D in quad
