@@ -16,9 +16,9 @@ class fpType:
     h = height of max filter
     
     based on stft hop-size of 32 samples (4ms):
-    ref.r = 800ms / 4ms = 200
-    ref.c = 1375ms / 4ms = ~345
-    que.r = 1300ms / 4ms = 325
+    ref.r =    800ms / 4ms = 200
+    ref.c =   1375ms / 4ms = ~345
+    que.r =   1300ms / 4ms = 325
     que.c = 1437.5ms / 4ms = ~360
 
     query filter height/width are calculated as:
@@ -28,8 +28,9 @@ class fpType:
     reference width changed from 151 to 150 so that
     result is an int for epsilon of .2 (20% change in speed/tempo)
     """
-    Reference = [9, 200, 325, 150, 75]
-    Query = [500, 345, 360, 125, 60]
+    #             Q    R    C    W    H
+    Reference = [  9, 200, 325, 150,  75]
+    Query     = [500, 345, 360, 125,  60]
 
 class Fingerprint:
     def __init__(self, path, fp_type):

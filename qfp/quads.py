@@ -2,7 +2,7 @@
 from __future__ import division
 
 import itertools
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from heapq import nlargest
 
 def find_quads(peaks, r, c):
@@ -36,7 +36,9 @@ def _filter_peaks(root, peaks, r, c):
     if windowStart > lastPeak:
         return None 
     windowEnd = windowStart + r
-    filtered = [x for x in peaks if x[0] >= windowStart and x[0] <= windowEnd]
+    idx_start = bisect_left(peaks, (windowStart, None))
+    idx_end = bisect_right(peaks, (windowEnd, None))
+    filtered = peaks[idx_start:idx_end]
     if len(filtered) is 0:
         return None
     return filtered
