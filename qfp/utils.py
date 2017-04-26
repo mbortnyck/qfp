@@ -1,6 +1,10 @@
+from __future__ import division
+
 import numpy as np
 from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
+from bisect import bisect_left
+from heapq import nlargest
 
 def stft(samples, framesize=1024, hopsize=32):
     """
@@ -41,8 +45,39 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     positions = zip(x, y)
     return positions
 
-def partition_quads(quads):
+def n_strongest(spec, quads, n):
+    """
+    Returns list of 9 strongest quads in each 1 second partition
+    Strongest is calculated by magnitudes of C and D in quad
+    """
+    strongest = []
+    partitions = _find_partitions(quads)
+    key = lambda x: (spec[x[1][0]][x[1][1]] + spec[x[2][0]][x[2][1]])
+    for i in xrange(1, len(partitions)):
+        start = partitions[i - 1]
+        end = partitions[i]
+        strongest += nlargest(n, quads[start:end], key)
+    return strongest
+
+def _find_partitions(quads, l=250):
+    """
+    Returns list of indices where partitions of 250 (1 second) are
+    """
+    b_l = bisect_left
     last_x = quads[-1][0][0]
-    num_partitions = last_x // 250
-    for i in xrange(num_partitions):
-        partitions.append(bisect_left(quads, ))
+    num_partitions = last_x // l
+    partitions = [b_l(quads, [(i * l, None)]) for i in xrange(num_partitions)]
+    partitions.append(len(quads))
+    return partitions
+
+def generate_hash(quad):
+    """
+    Compute translation- and scale-invariant hash from a given quad
+    """
+    A, C, D, B = quad
+    B = (B[0] - A[0], B[1] - A[1])
+    C = (C[0] - A[0], C[1] - A[1])
+    D = (D[0] - A[0], D[1] - A[1])
+    cDash = (C[0] / B[0], C[1] / B[1])
+    dDash = (D[0] / B[0], D[1] / B[1])
+    return [cDash, dDash]

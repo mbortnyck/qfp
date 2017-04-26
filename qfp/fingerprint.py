@@ -1,8 +1,10 @@
 from __future__ import division
 
 from .audio import load_audio
-from .utils import stft, find_peaks
-from .quads import find_quads, generate_hash
+from .utils import stft, find_peaks, generate_hash, n_strongest
+from .quads import find_quads
+
+import timeit
 
 class fpType:
     """
@@ -46,21 +48,10 @@ class Fingerprint:
         q, r, c, w, h = self.params
         samples = load_audio(self.path, snip=snip)
         self.spectrogram = stft(samples)
-        """if len(self.spectrogram) <= k:
-            raise InvalidAudioLength(
-                "'{file}' did not produce spectrogram of "
-                "sufficient length for c value provided".format(file=self.path))"""
         self.peaks = list(find_peaks(self.spectrogram, w, h))
-        """if len(self.peaks) < 4:
-            raise TooFewPeaks(
-                "'{file}' contains too few peaks to form quads".format(file=self.path))"""
         self.quads = find_quads(self.peaks, r, c)
-        """if len(self.quads) is 0:
-            raise NoQuadsFound(
-                "'{file}' produced no quads".format(file=self.path))"""
-        self.hashes = []
-        for quad in self.quads:
-            self.hashes += generate_hash(quad)
+        self.strongest = n_strongest(self.spectrogram, self.quads, q)
+        self.hashes = [generate_hash(q) for q in self.strongest]
 
 class ReferenceFingerprint(Fingerprint):
     def __init__(self, path):
