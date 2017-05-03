@@ -1,5 +1,4 @@
 import sqlite3
-from bitstring import pack
 
 from .fingerprint import fpType
 

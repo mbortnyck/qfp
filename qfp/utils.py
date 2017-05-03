@@ -33,8 +33,6 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     Local minima used to filter out uniform areas (e.g. silence)
     Returns: list of int8 tuples of form (x, y)
     """
-    """if dbGate is not None:
-        spec[spec < dbGate] = 0"""
     maxFilterDimen = (maxWidth, maxHeight)
     minFilterDimen = (minWidth, minHeight)
     maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
@@ -80,4 +78,4 @@ def generate_hash(quad):
     D = (D[0] - A[0], D[1] - A[1])
     cDash = (C[0] / B[0], C[1] / B[1])
     dDash = (D[0] / B[0], D[1] / B[1])
-    return [cDash, dDash]
+    return cDash + dDash
