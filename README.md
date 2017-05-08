@@ -32,7 +32,6 @@ from qfp.db import QfpDB
 
 db = QfpDB()
 db.store(fp_r, "Prince - Kiss")
-db.query(fp_q)
 ```
 
 Qfp currently accepts recordings in [any format that ffmpeg can handle](http://www.ffmpeg.org/general.html#File-Formats).
