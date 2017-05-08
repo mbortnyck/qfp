@@ -4,8 +4,6 @@ from .audio import load_audio
 from .utils import stft, find_peaks, generate_hash, n_strongest
 from .quads import find_quads
 
-import timeit
-
 class fpType:
     """
     Parameters for reference/query fingerprint types
@@ -55,10 +53,12 @@ class Fingerprint:
 
 class ReferenceFingerprint(Fingerprint):
     def __init__(self, path):
-        Fingerprint.__init__(self, path, fp_type=fpType.Reference)
+        self.fp_type = fpType.Reference
+        Fingerprint.__init__(self, path, fp_type=self.fp_type)
 
 class QueryFingerprint(Fingerprint):
     def __init__(self, path):
-        Fingerprint.__init__(self, path, fp_type=fpType.Query)
+        self.fp_type = fpType.Query
+        Fingerprint.__init__(self, path, fp_type=self.fp_type)
     def create(self):
         Fingerprint.create(self, snip=15)
