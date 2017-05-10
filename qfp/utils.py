@@ -45,7 +45,7 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
 
 def n_strongest(spec, quads, n):
     """
-    Returns list of 9 strongest quads in each 1 second partition
+    Returns list of n strongest quads in each 1 second partition
     Strongest is calculated by magnitudes of C and D in quad
     """
     strongest = []
