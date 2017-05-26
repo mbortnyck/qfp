@@ -46,10 +46,6 @@ class QfpDB:
                 UNIQUE(title));''')
     """
     STORING FINGERPRINTS
-    
-    Usage example:
-    db = QfpDB()
-    db.store(fp, "Prince - Kiss")
     """
     def store(self, fp, title):
         """
@@ -67,6 +63,10 @@ class QfpDB:
         conn.commit()
         conn.close()
     def _record_exists(self, c, title):
+        """
+        Returns True/False depending on existence of a song title
+        in the QfpDB
+        """
         c.execute('''SELECT id 
                        FROM Records
                       WHERE title = ?''', (title,))
@@ -76,6 +76,10 @@ class QfpDB:
         else:
             return True
     def _store_record(self, c, title):
+        """
+        Inserts a song title into the Records table, then
+        returns its primary key.
+        """
         c.execute('''INSERT INTO Records
                      VALUES (null,?)''', (title,))
         return c.lastrowid
@@ -88,7 +92,7 @@ class QfpDB:
                     (h[0], h[0], h[1], h[1], h[2], h[2], h[3], h[3]))
     def _store_quad(self, c, quad, recordid):
         """
-        Inserts given quad into QfpDB's Quads table
+        Inserts given quad into the Quads table
         """
         hashid = c.lastrowid
         c.execute('''INSERT INTO Quads
@@ -99,6 +103,9 @@ class QfpDB:
     QUERYING DB
     """
     def query(self, fp):
+        """
+        Queries database for a given query quad
+        """
         if fp.fp_type != fpType.Query:
             raise TypeError("May only query db with query fingerprints")
         with sqlite3.connect(self.path) as conn:
@@ -118,6 +125,10 @@ class QfpDB:
         #self.match_candidates = (x for x in self.histogram if x[1] >= 4)
         conn.close()
     def _find_candidates(self, c, h, e=0.01):
+        """
+        Epsilon (e) neighbor search for a given hash. Matching hash ids
+        can be retrieved from the cursor.
+        """
         c.execute('''SELECT id FROM Hashes
                       WHERE minW >= ? AND maxW <= ?
                         AND minX >= ? AND maxX <= ?
@@ -128,6 +139,13 @@ class QfpDB:
                             h[2]-e,       h[2]+e,
                             h[3]-e,       h[3]+e))
     def _filter_candidates(self, conn, c, queQ, e=0.2, eFine=1.8):
+        """
+        Performs three tests on potential matching quads. Quads that pass
+        these tests are added to the results dictionary.
+        Counts is used to determine order of candidate recordid validation
+        (we want to start the next step, validation, with the record with
+        the greatest number of possible matches).
+        """
         for hashid in c:
             canQ, recordid = self._lookup_quad(conn, hashid)
             # Rough pitch coherence:
