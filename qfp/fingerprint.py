@@ -41,7 +41,7 @@ class Fingerprint:
             self.params = fp_type
     def create(self, snip=None):
         """
-        Returns quad hashes for a given audio file
+        Creates quad hashes for a given audio file
         """
         q, r, c, w, h = self.params
         samples = load_audio(self.path, snip=snip)
