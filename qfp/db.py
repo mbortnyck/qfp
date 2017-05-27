@@ -110,16 +110,18 @@ class QfpDB:
             raise TypeError("May only query db with query fingerprints")
         with sqlite3.connect(self.path) as conn:
             c = conn.cursor()
-            self.results = defaultdict(list)
-            self.counts = defaultdict(int)
+            results = defaultdict(list)
+            counts = defaultdict(int)
             for i in xrange(len(fp.hashes)):
                 qHash = fp.hashes[i]
                 qQuad = fp.strongest[i]
                 self._find_candidates(c, qHash)
-                self._filter_candidates(conn, c, qQuad)
-        self.counts = sorted(self.counts.items(), key=operator.itemgetter(1), reverse=True)
-        for count in self.counts:
-            hist = self._create_histogram(self.results[count[0]])
+                self._filter_candidates(conn, c, qQuad, results, counts)
+        counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=1)
+        for count in counts:
+            recordid = count[0]
+            hist = self._create_histogram(results[recordid])
+            self._lookup_record(conn, recordid)
             print hist
         #self.histogram = self._create_histogram(self.results)
         #self.match_candidates = (x for x in self.histogram if x[1] >= 4)
@@ -138,38 +140,41 @@ class QfpDB:
                             h[1]-e,       h[1]+e,
                             h[2]-e,       h[2]+e,
                             h[3]-e,       h[3]+e))
-    def _filter_candidates(self, conn, c, queQ, e=0.2, eFine=1.8):
+    def _filter_candidates(self, conn, c, qQuad, results, counts, e=0.2, eFine=1.8):
         """
         Performs three tests on potential matching quads. Quads that pass
         these tests are added to the results dictionary.
         Counts is used to determine order of candidate recordid validation
-        (we want to start the next step, validation, with the record with
-        the greatest number of possible matches).
+        (we want to start the next step, validation, with the record which
+        has the greatest number of possible matches).
         """
         for hashid in c:
-            canQ, recordid = self._lookup_quad(conn, hashid)
+            cQuad, recordid = self._lookup_quad(conn, hashid)
             # Rough pitch coherence:
             #   1/(1+e) <= queAy/canAy <= 1/(1-e)
-            if not 1/(1+e) <= queQ[0][1]/canQ[0][1] <= 1/(1-e):
+            if not 1/(1+e) <= qQuad[0][1]/cQuad[0][1] <= 1/(1-e):
                 continue
             # X transformation tolerance check:
             #   sTime = (queBx-queAx)/(canBx-canAx)
-            sTime = (queQ[3][0]-queQ[0][0])/(canQ[3][0]-canQ[0][0])
+            sTime = (qQuad[3][0]-qQuad[0][0])/(cQuad[3][0]-cQuad[0][0])
             if not 1/(1+e) <= sTime <= 1/(1-e):
                 continue
             # Y transformation tolerance check:
             #   sFreq = (queBy-queAy)/(canBy-canAy)
-            sFreq = (queQ[3][1]-queQ[0][1])/(canQ[3][1]-canQ[0][1])
+            sFreq = (qQuad[3][1]-qQuad[0][1])/(cQuad[3][1]-cQuad[0][1])
             if not 1/(1+e) <= sFreq <= 1/(1-e):
                 continue
             # Fine pitch coherence:
             #   |queAy-canAy*sFreq| <= eFine
-            if not abs(queQ[0][1]-(canQ[0][1]*sFreq)) <= eFine:
+            if not abs(qQuad[0][1]-(cQuad[0][1]*sFreq)) <= eFine:
                 continue
-            normal = (queQ[0][0]/sTime)
-            self.results[recordid].append(canQ[0][0]-normal)
-            self.counts[recordid] += 1
+            normal = (qQuad[0][0]/sTime)
+            results[recordid].append(cQuad[0][0]-normal)
+            counts[recordid] += 1
     def _lookup_quad(self, conn, hashid):
+        """
+        Returns quad and recordid of a given hashid
+        """
         c = conn.cursor()
         c.execute('''SELECT Ax,Ay,Cx,Cy,Dx,Dy,Bx,By,recordid FROM Quads
                       WHERE hashid=?''', hashid)
@@ -178,6 +183,12 @@ class QfpDB:
         recordid = r[8]
         return quad, recordid
     def _create_histogram(self, results, binwidth=20, ts=4):
+        """
+        Creates a histogram to estimate possible starting points of a
+        given query fingerprint in the original song. Candidate starting
+        points that have 4 or more matches are returned in order of
+        greatest to least matches.
+        """
         counts = defaultdict(int)
         for val in results:
            binname = int(math.floor(val/binwidth)*binwidth)
@@ -185,3 +196,12 @@ class QfpDB:
         sorted_counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
         gt_ts = [x for x in sorted_counts if x[1] >= ts]
         return gt_ts
+    def _lookup_record(self, conn, recordid):
+        """
+        Returns title of given recordid
+        """
+        print recordid
+        c = conn.execute('''SELECT title
+                              FROM Records
+                             WHERE id = ?''', (recordid,))
+        print c.fetchone()
