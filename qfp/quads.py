@@ -1,8 +1,9 @@
 # This Python file uses the following encoding: utf-8
 from __future__ import division
 
-import itertools
 from bisect import bisect_left, bisect_right
+from collections import namedtuple
+from itertools import combinations
 
 def find_quads(peaks, r, c):
     """
@@ -31,8 +32,8 @@ def _filter_peaks(root, peaks, r, c):
     """
     returns peaks inside window of Ax + c ± (r / 2)
     """
-    lastPeak = peaks[-1][0]
-    windowStart = root[0] + c - (r / 2)
+    lastPeak = peaks[-1].x
+    windowStart = root.x + c - (r / 2)
     if windowStart > lastPeak:
         return None
     windowEnd = windowStart + r
@@ -47,11 +48,12 @@ def _valid_quads(root, filtered):
     """
     returns list of validated quads for given root (A)
     """
+    Quad = namedtuple('Quad', ['A', 'C', 'D', 'B'])
     validQuads = []
-    for comb in itertools.combinations(filtered, 3):
+    for comb in combinations(filtered, 3):
         A, C, D, B = (root, comb[0], comb[1], comb[2])
         if _validate_quad(A, C, D, B):
-            validQuads += [[A, C, D, B]]
+            validQuads += [Quad(A, C, D, B)]
     if len(validQuads) is 0:
         return None
     else:
@@ -66,8 +68,8 @@ def _validate_quad(A, C, D, B):
     """
     # !! assumes combinations are sorted by x value
     # (default behavior of itertools.combinations)
-    if A[1] >= B[1] or A[1] >= D[1]:
+    if A.y >= B.y or A.y >= D.y:
         return False
-    elif A[1] >= C[1] or C[1] >= B[1] or D[1] >= B[1]:
+    elif A.y >= C.y or C.y >= B.y or D.y >= B.y:
         return False
     return True

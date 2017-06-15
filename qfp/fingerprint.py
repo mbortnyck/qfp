@@ -7,7 +7,9 @@ from .quads import find_quads
 class fpType:
     """
     Parameters for reference/query fingerprint types
-    Presented in order [q, r, c, w, h]
+    Presented in order (q, r, c, w, h)
+
+    Tuple is used to ensure immutability
 
     q = quads to create per root point (A)
     r = width of search window
@@ -29,8 +31,8 @@ class fpType:
     result is an int for epsilon of .2 (20% change in speed/tempo)
     """
     #             Q    R    C    W    H
-    Reference = [  9, 200, 325, 150,  75]
-    Query     = [500, 345, 360, 125,  60]
+    Reference = (  9, 200, 325, 150,  75)
+    Query     = (500, 345, 360, 125,  60)
 
 class Fingerprint:
     def __init__(self, path, fp_type):
@@ -47,8 +49,8 @@ class Fingerprint:
         samples = load_audio(self.path, snip=snip)
         spectrogram = stft(samples)
         self.peaks = list(find_peaks(spectrogram, w, h))
-        quads = find_quads(self.peaks, r, c)
-        self.strongest = n_strongest(spectrogram, quads, q)
+        self.quads = find_quads(self.peaks, r, c)
+        self.strongest = n_strongest(spectrogram, self.quads, q)
         self.hashes = [generate_hash(q) for q in self.strongest]
 
 class ReferenceFingerprint(Fingerprint):
