@@ -49,8 +49,8 @@ class Fingerprint:
         samples = load_audio(self.path, snip=snip)
         spectrogram = stft(samples)
         self.peaks = list(find_peaks(spectrogram, w, h))
-        self.quads = find_quads(self.peaks, r, c)
-        self.strongest = n_strongest(spectrogram, self.quads, q)
+        quads = find_quads(self.peaks, r, c)
+        self.strongest = n_strongest(spectrogram, quads, q)
         self.hashes = [generate_hash(q) for q in self.strongest]
 
 class ReferenceFingerprint(Fingerprint):
