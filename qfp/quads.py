@@ -51,25 +51,26 @@ def _valid_quads(root, filtered):
     Quad = namedtuple('Quad', ['A', 'C', 'D', 'B'])
     validQuads = []
     for comb in combinations(filtered, 3):
-        A, C, D, B = (root, comb[0], comb[1], comb[2])
-        if _validate_quad(A, C, D, B):
-            validQuads += [Quad(A, C, D, B)]
+        quad = Quad(root, comb[0], comb[1], comb[2])
+        if _validate_quad(quad):
+            validQuads += [quad]
     if len(validQuads) is 0:
         return None
     else:
         return validQuads
 
-def _validate_quad(A, C, D, B):
+def _validate_quad(q):
     """
     Evaluates:
+
           Ay < By
       Ax < Cx <= Dx <= Bx
       Ay < Cy ,  Dy <= By
+
+    !! assumes combinations are sorted by x value
+    (default behavior of itertools.combinations)
     """
-    # !! assumes combinations are sorted by x value
-    # (default behavior of itertools.combinations)
-    if A.y >= B.y or A.y >= D.y:
+    if q.A.y < q.C.y < q.B.y and q.A.y < q.D.y < q.B.y:
+        return True
+    else:
         return False
-    elif A.y >= C.y or C.y >= B.y or D.y >= B.y:
-        return False
-    return True
