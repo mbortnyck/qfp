@@ -18,9 +18,9 @@ class fpType:
     h = height of max filter
     
     based on stft hop-size of 32 samples (4ms):
-    ref.r =    800ms / 4ms = 200
+    ref.r =    800ms / 4ms =  200
     ref.c =   1375ms / 4ms = ~345
-    que.r =   1300ms / 4ms = 325
+    que.r =   1300ms / 4ms =  325
     que.c = 1437.5ms / 4ms = ~360
 
     query filter height/width are calculated as:

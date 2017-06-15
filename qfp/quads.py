@@ -52,14 +52,14 @@ def _valid_quads(root, filtered):
     validQuads = []
     for comb in combinations(filtered, 3):
         quad = Quad(root, comb[0], comb[1], comb[2])
-        if _validate_quad(quad):
-            validQuads += [quad]
+        if _valid_quad(quad):
+            validQuads.append(quad)
     if len(validQuads) is 0:
         return None
     else:
         return validQuads
 
-def _validate_quad(q):
+def _valid_quad(q):
     """
     Evaluates:
 
@@ -67,10 +67,10 @@ def _validate_quad(q):
       Ax < Cx <= Dx <= Bx
       Ay < Cy ,  Dy <= By
 
-    !! assumes combinations are sorted by x value
+    !! NOTE: assumes combinations are sorted by x value
     (default behavior of itertools.combinations)
     """
-    if q.A.y < q.C.y < q.B.y and q.A.y < q.D.y < q.B.y:
+    if q.A.y < q.C.y < q.B.y and q.A.y < q.D.y <= q.B.y:
         return True
     else:
         return False
