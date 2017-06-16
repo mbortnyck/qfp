@@ -8,6 +8,7 @@ from collections import namedtuple
 from itertools import izip
 from heapq import nlargest
 
+
 def stft(samples, framesize=1024, hopsize=32):
     """
     Short time fourier transform of audio
@@ -19,15 +20,17 @@ def stft(samples, framesize=1024, hopsize=32):
     samples = np.append(np.zeros(int(framesize / 2)), samples)
     cols = int(np.ceil((len(samples) - framesize) / float(hopsize)) + 1)
     samples = np.append(samples, np.zeros(framesize))
-    frames = stride_tricks.as_strided(samples, \
-               shape=(cols, framesize), \
-               strides=(samples.strides[0]*hopsize, samples.strides[0])).copy()
+    strides = (samples.strides[0] * hopsize, samples.strides[0])
+    frames = stride_tricks.as_strided(samples,
+                                      shape=(cols, framesize),
+                                      strides=strides).copy()
     frames *= window
     spec = np.fft.rfft(frames)
-    with np.errstate(divide='ignore'): # silences "divide by zero" error
-        spec = 20.*np.log10(np.abs(spec)/10e-6) # amplitude to decibel
+    with np.errstate(divide='ignore'):  # silences "divide by zero" error
+        spec = 20. * np.log10(np.abs(spec) / 10e-6)  # amplitude to decibel
     spec[spec == -np.inf] = 0
     return spec
+
 
 def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     """
@@ -38,13 +41,16 @@ def find_peaks(spec, maxWidth, maxHeight, minWidth=3, minHeight=3):
     Peak = namedtuple('Peak', ['x', 'y'])
     maxFilterDimen = (maxWidth, maxHeight)
     minFilterDimen = (minWidth, minHeight)
-    maxima = maximum_filter(spec, footprint=np.ones(maxFilterDimen, dtype=np.int8))
-    minima = minimum_filter(spec, footprint=np.ones(minFilterDimen, dtype=np.int8))
+    maxima = maximum_filter(spec, footprint=np.ones(
+        maxFilterDimen, dtype=np.int8))
+    minima = minimum_filter(spec, footprint=np.ones(
+        minFilterDimen, dtype=np.int8))
     peaks = ((spec == maxima) == (maxima != minima))
     # todo: parabolic interpolation
     x, y = np.nonzero(peaks)
     namedpeaks = [Peak(p[0], p[1]) for p in izip(x, y)]
     return namedpeaks
+
 
 def n_strongest(spec, quads, n):
     """
@@ -53,13 +59,13 @@ def n_strongest(spec, quads, n):
     """
     strongest = []
     partitions = _find_partitions(quads)
-    #key = lambda x: (spec[x[1][0]][x[1][1]] + spec[x[2][0]][x[2][1]])
     key = lambda p: (spec[p.C.x][p.C.y] + spec[p.D.x][p.D.y])
     for i in xrange(1, len(partitions)):
         start = partitions[i - 1]
         end = partitions[i]
         strongest += nlargest(n, quads[start:end], key)
     return strongest
+
 
 def _find_partitions(quads, l=250):
     """
@@ -73,6 +79,7 @@ def _find_partitions(quads, l=250):
     partitions = [b_l(quads, q(i * l)) for i in xrange(num_partitions)]
     partitions.append(len(quads))
     return partitions
+
 
 def generate_hash(quad):
     """

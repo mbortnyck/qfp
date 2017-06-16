@@ -5,15 +5,16 @@ from bisect import bisect_left, bisect_right
 from collections import namedtuple
 from itertools import combinations
 
+
 def find_quads(peaks, r, c):
     """
     Returns list of valid/strong quads for list of peaks
     """
-    #quads = reduce(iadd, (_root_quads(root, peaks, r, c) for root in peaks))
     quads = []
     for root in peaks:
         quads += _root_quads(root, peaks, r, c)
     return quads
+
 
 def _root_quads(root, peaks, r, c):
     """
@@ -27,6 +28,7 @@ def _root_quads(root, peaks, r, c):
     if found is not None:
         quads += found
     return quads
+
 
 def _filter_peaks(root, peaks, r, c):
     """
@@ -44,6 +46,7 @@ def _filter_peaks(root, peaks, r, c):
         return None
     return filtered
 
+
 def _valid_quads(root, filtered):
     """
     returns list of validated quads for given root (A)
@@ -58,6 +61,7 @@ def _valid_quads(root, filtered):
         return None
     else:
         return validQuads
+
 
 def _valid_quad(q):
     """
