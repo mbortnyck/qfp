@@ -65,7 +65,7 @@ class QfpDB:
         self.Quad = namedtuple('Quad', ['A', 'C', 'D', 'B'])
         mcNames = ['recordid', 'offset', 'num_matches', 'sTime', 'sFreq']
         self.MatchCandidate = namedtuple('MatchCandidate', mcNames)
-        self.Match = namedtuple('Match', ['recordid', 'offset', 'vScore'])
+        self.Match = namedtuple('Match', ['record', 'offset', 'vScore'])
 
     """
     STORING FINGERPRINTS
