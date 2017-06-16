@@ -34,6 +34,16 @@ db = QfpDB()
 db.store(fp_r, "Prince - Kiss")
 ```
 
+```python
+fp_q = QueryFingerprint("kiss_pitched_up.mp3")
+fp_q.create()
+db.query(fp_q)
+fp.matches
+```
+```python
+[Match(record=u'Prince - Kiss', offset=0, vScore=0.7077922077922078)]
+```
+
 Qfp currently accepts recordings in [any format that ffmpeg can handle](http://www.ffmpeg.org/general.html#File-Formats).
 
 ## Dependencies
