@@ -282,7 +282,7 @@ class QfpDB:
         """
         rPeaks = self._lookup_peak_range(c, mc.recordid, mc.offset)
         vScore = self._verify_peaks(mc, rPeaks, fp.peaks)
-        return self.Match(mc.recordid, mc.offset, vScore)
+        return self.Match(self._lookup_record(mc.recordid), mc.offset, vScore)
 
     def _lookup_peak_range(self, c, recordid, offset, e=3750):
         """
