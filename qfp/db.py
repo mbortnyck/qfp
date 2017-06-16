@@ -282,7 +282,7 @@ class QfpDB:
         """
         rPeaks = self._lookup_peak_range(c, mc.recordid, mc.offset)
         vScore = self._verify_peaks(mc, rPeaks, fp.peaks)
-        return self.Match(self._lookup_record(mc.recordid), mc.offset, vScore)
+        return self.Match(self._lookup_record(c, mc.recordid), mc.offset, vScore)
 
     def _lookup_peak_range(self, c, recordid, offset, e=3750):
         """
@@ -309,7 +309,6 @@ class QfpDB:
         for rPeak in rPeaks:
             rPeak = (rPeak.x - mc.offset, rPeak.y)
             rPeakScaled = self.Peak(rPeak[0] / mc.sFreq, rPeak[1] / mc.sTime)
-            print(rPeakScaled)
             lBound = bisect_left(qPeaks, (rPeakScaled.x - eX, None))
             rBound = bisect_right(qPeaks, (rPeakScaled.x + eX, None))
             for i in xrange(lBound, rBound):
@@ -320,13 +319,12 @@ class QfpDB:
         vScore = (float(validated) / len(rPeaks))
         return vScore
 
-    def _lookup_record(self, conn, recordid):
+    def _lookup_record(self, c, recordid):
         """
         Returns title of given recordid
         """
-        c = conn.execute("""SELECT title
-                              FROM Records
-                             WHERE id = ?""", (recordid,))
+        c.execute("""SELECT title
+                       FROM Records
+                      WHERE id = ?""", (recordid,))
         title = c.fetchone()
-        c.close()
         return title[0]
