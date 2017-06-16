@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 from bisect import bisect_left, bisect_right
 from collections import defaultdict, namedtuple
 from qfp.fingerprint import fpType
@@ -63,12 +63,14 @@ class QfpDB:
     def _create_named_tuples(self):
         self.Peak = namedtuple('Peak', ['x', 'y'])
         self.Quad = namedtuple('Quad', ['A', 'C', 'D', 'B'])
-        mcNames = ['offset', 'num_matches', 'sTime', 'sFreq']
+        mcNames = ['recordid', 'offset', 'num_matches', 'sTime', 'sFreq']
         self.MatchCandidate = namedtuple('MatchCandidate', mcNames)
+        self.Match = namedtuple('Match', ['recordid', 'offset', 'vScore'])
 
     """
     STORING FINGERPRINTS
     """
+
     def store(self, fp, title):
         """
         Stores a reference fingerprint in the db
@@ -135,36 +137,31 @@ class QfpDB:
                   q.D.x, q.D.y, q.B.x, q.B.y)
         c.execute("""INSERT INTO Quads
                      VALUES (?,?,?,?,?,?,?,?,?,?)""", values)
+
     """
     QUERYING DB
     """
 
-    def query(self, fp, vThreshold=0):
+    def query(self, fp, vThreshold=0.5):
         """
         Queries database for a given query fingerprint
         """
         if fp.fp_type != fpType.Query:
             raise TypeError("May only query db with query fingerprints")
-        fp.match_candidates = self._match_candidates(fp)
-        #self.verified = self._verify_candidates(self.match_candidates)
+        fp.match_candidates = self._find_match_candidates(fp)
+        conn = sqlite3.connect(self.path)
+        c = conn.cursor()
+        fp.matches = [m for m in [self._validate_match(fp, c, mc) for mc in fp.match_candidates] if m.vScore >= vThreshold]
+        c.close()
+        conn.close()
 
+    def _find_match_candidates(self, fp):
         """
-        self.histogram = self._create_histogram(self.match_candidates)
-        self.counts = {k:len(v) for k,v in self.results.items()}
-        self.counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=1)
-        for count in self.counts:
-            recordid = count[0]
-            self.hist = self._create_histogram(self.results[recordid])
-            for off in self.hist:
-                self.rPeaks = self._lookup_peak_range(c, recordid, off[0])
-                vScore = self._verify_peaks(off[0], self.rPeaks, fp.peaks)
-                if vScore >= vThreshold:
-                    print "POSSIBLE MATCH: %s (%f) at %f seconds" % (self._lookup_record(conn, recordid), vScore, (off[0]*4/1000.))
-        conn.close()"""
-
-    def _match_candidates(self, fp):
-        """
-        glurg
+        Searches the db for matching hashes, then checks if the matching
+        quad is within scale bounds. A histogram of these matches that are
+        within scale bounds is created. If the offset (rough point in time in
+        the song) receives 4 or more matches, it is considered a true match
+        candidate.
         """
         conn = sqlite3.connect(self.path)
         c = conn.cursor()
@@ -173,13 +170,14 @@ class QfpDB:
             self._radius_nn(c, qHash)
             with np.errstate(divide='ignore', invalid='ignore'):
                 self._filter_candidates(conn, c, qQuad, filtered)
-        self.filtered = filtered
         binned = {k: self._bin_times(v) for k, v in filtered.items()}
         results = {k: self._scales(v)
                    for k, v in binned.items() if len(v) >= 4}
+        mc = [self.MatchCandidate(k, a[0], a[1], a[2][0], a[2][1])
+              for k, v in results.items() for a in v]
         c.close()
         conn.close()
-        return results.items()
+        return mc
 
     def _radius_nn(self, c, h, e=0.01):
         """
@@ -279,11 +277,12 @@ class QfpDB:
              (means[1] - 2 * stds[1] <= v[1] <= means[1] + 2 * stds[1])]
         return d
 
-    def _validate_match(self, fp, c, recordid, offset):
+    def _validate_match(self, fp, c, mc):
         """
         """
-        rPeaks = self._lookup_peak_range(c, recordid, offset)
-        vScore = self._verify_peaks(rPeaks, fp.peaks)
+        rPeaks = self._lookup_peak_range(c, mc.recordid, mc.offset)
+        vScore = self._verify_peaks(mc, rPeaks, fp.peaks)
+        return self.Match(mc.recordid, mc.offset, vScore)
 
     def _lookup_peak_range(self, c, recordid, offset, e=3750):
         """
@@ -295,9 +294,9 @@ class QfpDB:
                        FROM Peaks
                       WHERE X >= ? AND X <= ?
                         AND recordid = ?""", data)
-        return c.fetchall()
+        return [self.Peak(p[0], p[1]) for p in c.fetchall()]
 
-    def _verify_peaks(self, offset, rPeaks, qPeaks, eX=18, eY=12):
+    def _verify_peaks(self, mc, rPeaks, qPeaks, eX=18, eY=12):
         """
         Checks for presence of a given set of reference peaks in the
         query fingerprint's list of peaks according to time and
@@ -308,12 +307,13 @@ class QfpDB:
         """
         validated = 0
         for rPeak in rPeaks:
-            rPeak = (rPeak[0] - offset, rPeak[1])
-            lBound = bisect_left(qPeaks, (rPeak[0] - eX, None))
-            rBound = bisect_right(qPeaks, (rPeak[0] + eX, None))
+            rPeak = (rPeak.x - mc.offset, rPeak.y)
+            rPeakScaled = self.Peak(rPeak[0] / mc.sFreq, rPeak[1] / mc.sTime)
+            print(rPeakScaled)
+            lBound = bisect_left(qPeaks, (rPeakScaled.x - eX, None))
+            rBound = bisect_right(qPeaks, (rPeakScaled.x + eX, None))
             for i in xrange(lBound, rBound):
-                if not rPeak[1] - eY <= qPeaks[i][1] <= rPeak[1] + eY:
-                    # print "yFail: ", rPeak[1] - eY, qPeaks[i][1], rPeak[1] + eY
+                if not rPeakScaled.y - eY <= qPeaks[i].y <= rPeakScaled.y + eY:
                     continue
                 else:
                     validated += 1
