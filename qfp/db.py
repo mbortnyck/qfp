@@ -173,6 +173,7 @@ class QfpDB:
             self._radius_nn(c, qHash)
             with np.errstate(divide='ignore', invalid='ignore'):
                 self._filter_candidates(conn, c, qQuad, filtered)
+        self.filtered = filtered
         binned = {k: self._bin_times(v) for k, v in filtered.items()}
         results = {k: self._scales(v)
                    for k, v in binned.items() if len(v) >= 4}
@@ -213,12 +214,12 @@ class QfpDB:
                 continue
             # Y transformation tolerance check:
             #   sFreq = (queBy-queAy)/(canBy-canAy)
-            sFreq = (qQuad.B.y - qQuad.A.y) / (cQuad.C.y - cQuad.a.Y)
+            sFreq = (qQuad.B.y - qQuad.A.y) / (cQuad.B.y - cQuad.A.y)
             if not 1 / (1 + e) <= sFreq <= 1 / (1 - e):
                 continue
             # Fine pitch coherence:
             #   |queAy-canAy*sFreq| <= eFine
-            if not abs(qQuad.A.y - (cQuad.a.Y * sFreq)) <= eFine:
+            if not abs(qQuad.A.y - (cQuad.A.y * sFreq)) <= eFine:
                 continue
             offset = cQuad.A.x - (qQuad.A.x / sTime)
             results[recordid].append((offset, (sTime, sFreq)))
@@ -232,8 +233,8 @@ class QfpDB:
                       WHERE hashid=?""", hashid)
         r = c.fetchone()
         c.close()
-        quad = self.Quad((r[0], r[1]), (r[2], r[3]),
-                         (r[4], r[5]), (r[6], r[7]))
+        quad = self.Quad(self.Peak(r[0], r[1]), self.Peak(r[2], r[3]),
+                         self.Peak(r[4], r[5]), self.Peak(r[6], r[7]))
         recordid = r[8]
         return quad, recordid
 
