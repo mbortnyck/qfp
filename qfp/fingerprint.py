@@ -4,6 +4,7 @@ from .audio import load_audio
 from .utils import stft, find_peaks, generate_hash, n_strongest
 from .quads import find_quads
 
+
 class fpType:
     """
     Parameters for reference/query fingerprint types
@@ -16,7 +17,7 @@ class fpType:
     c = distance from root point to position window
     w = width of max filter
     h = height of max filter
-    
+
     based on stft hop-size of 32 samples (4ms):
     ref.r =    800ms / 4ms =  200
     ref.c =   1375ms / 4ms = ~345
@@ -31,16 +32,20 @@ class fpType:
     result is an int for epsilon of .2 (20% change in speed/tempo)
     """
     #             Q    R    C    W    H
-    Reference = (  9, 200, 325, 150,  75)
-    Query     = (500, 345, 360, 125,  60)
+    Reference = (9, 200, 325, 150,  75)
+    Query = (500, 345, 360, 125,  60)
+
 
 class Fingerprint:
+
     def __init__(self, path, fp_type):
         self.path = path
         if fp_type is not fpType.Reference and fp_type is not fpType.Query:
-            raise TypeError("Fingerprint must be of type 'Reference' or 'Query'")
+            raise TypeError(
+                "Fingerprint must be of type 'Reference' or 'Query'")
         else:
             self.params = fp_type
+
     def create(self, snip=None):
         """
         Creates quad hashes for a given audio file
@@ -53,14 +58,19 @@ class Fingerprint:
         self.strongest = n_strongest(spectrogram, quads, q)
         self.hashes = [generate_hash(q) for q in self.strongest]
 
+
 class ReferenceFingerprint(Fingerprint):
+
     def __init__(self, path):
         self.fp_type = fpType.Reference
         Fingerprint.__init__(self, path, fp_type=self.fp_type)
 
+
 class QueryFingerprint(Fingerprint):
+
     def __init__(self, path):
         self.fp_type = fpType.Query
         Fingerprint.__init__(self, path, fp_type=self.fp_type)
+
     def create(self):
         Fingerprint.create(self, snip=15)
