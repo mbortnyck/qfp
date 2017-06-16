@@ -26,7 +26,7 @@ fp_q = QueryFingerprint("unknown_audio.wav")
 fp_q.create()
 ```
 
-The QfpDB can store reference fingerprints and lookup query fingerprints.
+The QfpDB can store reference fingerprints...
 ```python
 from qfp.db import QfpDB
 
@@ -34,6 +34,7 @@ db = QfpDB()
 db.store(fp_r, "Prince - Kiss")
 ```
 
+... and look up query fingerprints.
 ```python
 fp_q = QueryFingerprint("kiss_pitched_up.mp3")
 fp_q.create()
@@ -43,6 +44,7 @@ fp.matches
 ```python
 [Match(record=u'Prince - Kiss', offset=0, vScore=0.7077922077922078)]
 ```
+
 
 Qfp currently accepts recordings in [any format that ffmpeg can handle](http://www.ffmpeg.org/general.html#File-Formats).
 
