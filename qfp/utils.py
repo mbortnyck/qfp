@@ -5,8 +5,13 @@ from numpy.lib import stride_tricks
 from scipy.ndimage.filters import maximum_filter, minimum_filter
 from bisect import bisect_left
 from collections import namedtuple
-from itertools import izip
 from heapq import nlargest
+
+try:
+    from itertools import izip
+except ImportError:  # python 3.x
+    izip = zip
+    xrange = range
 
 
 def stft(samples, framesize=1024, hopsize=32):
