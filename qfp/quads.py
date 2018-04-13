@@ -42,7 +42,7 @@ def _filter_peaks(root, peaks, r, c):
     idx_start = bisect_left(peaks, (windowStart, None))
     idx_end = bisect_right(peaks, (windowEnd, None))
     filtered = peaks[idx_start:idx_end]
-    if len(filtered) is 0:
+    if len(filtered) < 3:
         return None
     return filtered
 
